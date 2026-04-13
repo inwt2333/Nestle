@@ -1,4 +1,4 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Put, Param } from '@nestjs/common';
 import { PrismaService } from './prisma/prisma.service';
 
 @Controller('tasks')
@@ -33,5 +33,13 @@ export class TaskController {
       suggestedSpeech: t.suggestedSpeech,
       couponId: t.couponId,
     }));
+  }
+
+  @Put(':id/complete')
+  async completeTask(@Param('id') id: string) {
+    return this.prisma.employeeTask.update({
+      where: { id },
+      data: { status: 'COMPLETED' },
+    });
   }
 }

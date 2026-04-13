@@ -1,18 +1,17 @@
-import { Controller, Post, Body, Get } from '@nestjs/common';
+import { Controller, Post, Body, Get, Put, Param, Delete } from '@nestjs/common';
 import { PrismaService } from './prisma/prisma.service';
 
 @Controller('business')
 export class BusinessController {
   constructor(private readonly prisma: PrismaService) {}
 
-  // 1. B端店员录入新顾客与宝宝档案（或C端扫码授权主动注册）
   @Post('customer')
   async addCustomer(
     @Body() data: { phone: string; nickname: string; babyName: string; birthDate: string; allergyInfo: string }
   ) {
     const customer = await this.prisma.customer.create({
       data: {
-        openId: `OPENID_APP_${Date.now()}_${Math.floor(Math.random() * 1000)}`, // 模拟小程序在后台静默获取的 OpenID
+        openId: `OPENID_APP_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
         phone: data.phone || `138${Math.floor(Math.random() * 100000000)}`,
         nickname: data.nickname,
         babyProfiles: {
@@ -28,15 +27,13 @@ export class BusinessController {
     return { success: true, message: '会员建档成功', data: customer };
   }
 
-  // 2. 门店收银扫码卖货 / C端下单购买
   @Post('order')
   async createOrder(@Body() data: { customerId: string; quantity: number }) {
-    // 获取当前门店（单店演示环境直接取第一个）
     const store = await this.prisma.store.findFirst();
     const product = await this.prisma.product.findFirst();
 
     if (!store || !product) {
-      return { success: false, message: '请先运行 npm run db 确保基础门店和商品存在' };
+      return { success: false, message: '系统缺少门店或测试产品数据，请重置数据库' };
     }
 
     const order = await this.prisma.order.create({
@@ -62,11 +59,79 @@ export class BusinessController {
     return { success: true, message: '开单成功', data: order };
   }
 
-  // 3. 获取所有客户列表 (用于前端收银选择)
   @Get('customers')
   async getCustomers() {
     return this.prisma.customer.findMany({
-      orderBy: { createdAt: 'desc' }
+      include: {
+        babyProfiles: true,
+        employeeTasks: {
+          orderBy: { createdAt: 'desc' },
+          take: 1
+        }
+      },
+      orderBy: { createdAt: 'desc' },
     });
+  }
+
+  @Put('customer/:id')
+  async updateCustomer(@Param('id') id: string, @Body() data: { nickname: string; phone: string; babyName: string; birthDate: string; allergyInfo: string }) {
+    const customer = await this.prisma.customer.update({
+      where: { id },
+      data: {
+        nickname: data.nickname,
+        phone: data.phone,
+      },
+      include: { babyProfiles: true }
+    });
+
+    if (customer.babyProfiles && customer.babyProfiles.length > 0) {
+      await this.prisma.babyProfile.update({
+        where: { id: customer.babyProfiles[0].id },
+        data: {
+          name: data.babyName,
+          birthDate: new Date(data.birthDate),
+          allergyInfo: data.allergyInfo,
+        }
+      });
+    } else {
+      await this.prisma.babyProfile.create({
+        data: {
+          customerId: id,
+          name: data.babyName,
+          birthDate: new Date(data.birthDate),
+          allergyInfo: data.allergyInfo
+        }
+      });
+    }
+    
+    return { success: true, message: '更新成功' };
+  }
+
+  @Delete('customer/:id')
+  async deleteCustomer(@Param('id') id: string) {
+    try {
+      const userOrders = await this.prisma.order.findMany({
+        where: { customerId: id },
+        select: { id: true }
+      });
+      const orderIds = userOrders.map(o => o.id);
+
+      if (orderIds.length > 0) {
+        await this.prisma.orderItem.deleteMany({
+          where: { orderId: { in: orderIds } }
+        });
+      }
+      
+      await this.prisma.order.deleteMany({ where: { customerId: id } });
+      await this.prisma.employeeTask.deleteMany({ where: { customerId: id } });
+      await this.prisma.recycleRecord.deleteMany({ where: { customerId: id } });
+      await this.prisma.babyProfile.deleteMany({ where: { customerId: id } });
+      
+      await this.prisma.customer.delete({ where: { id } });
+      
+      return { success: true, message: '删除成功' };
+    } catch (e) {
+      return { success: false, message: '删除失败: ' + String(e) };
+    }
   }
 }

@@ -9,7 +9,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npx ts-node src/main.ts",
-    "db": "docker-compose up -d && sleep 3 && npx prisma db push && npx ts-node prisma/seed.ts"
+    "db": "docker-compose up -d && sleep 3 && npx prisma db push && npx ts-node prisma/seed.ts",
+    "dev": "concurrently \"npm run start\" \"npm run start:front\"",
+    "start:front": "cd src-frontend && npm run dev"
   },
   "repository": {
     "type": "git",
@@ -37,6 +39,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
+    "concurrently": "^9.2.1",
     "prisma": "^5.11.0",
     "ts-node": "^10.9.2",
     "typescript": "^6.0.2"

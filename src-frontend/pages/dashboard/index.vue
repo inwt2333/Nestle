@@ -1,10 +1,14 @@
 <template>
   <view class="dashboard-container">
-    <!-- 头部：极简数据总览 -->
-    <view class="header-card">
+    <view class="nav-bar">
+      <view class="logo-box">🍼 <text class="logo-text">bC平台</text></view>
+      <button class="nav-btn shadow-btn" @click="goToCustomers">👥 客户管理</button>
+    </view>
+    
+    <view class="header-card sweep-bg">
       <view class="greeting">
         <text class="name">你好，{{ employeeName }} 👋</text>
-        <text class="store">{{ storeName }}</text>
+        <text class="store">📍 {{ storeName }}</text>
       </view>
       <view class="stats-row">
         <view class="stat-item">
@@ -13,66 +17,87 @@
         </view>
         <view class="stat-item">
           <text class="stat-value">{{ newMembers }}</text>
-          <text class="stat-label">新增会员(人)</text>
+          <text class="stat-label">新增会员</text>
         </view>
         <view class="stat-item">
           <text class="stat-value">{{ recycleCount }}</text>
-          <text class="stat-label">回收空罐(个)</text>
+          <text class="stat-label">回收空罐</text>
         </view>
       </view>
     </view>
 
-    <!-- 核心操作区：快捷扫码入口 -->
     <view class="quick-actions">
-      <button class="action-btn primary" @click="handleScanRecycle">
+      <button class="action-btn recycle-bg" @click="handleScanRecycle">
         <text class="icon">♻️</text>
-        <text>空罐核销</text>
+        <text class="btn-text">空罐核销</text>
       </button>
-      <button class="action-btn secondary" @click="handleAddMemberAndOrder">
-        <text class="icon">👤</text>
-        <text>录客开单</text>
+      <button class="action-btn add-bg" @click="showAddModal = true">
+        <text class="icon">➕</text>
+        <text class="btn-text">录客开单</text>
       </button>
     </view>
 
-    <!-- 待办任务区：自动化营销与关怀 (关联 Step 3 后端逻辑) -->
+    <!-- 自定义录客弹窗 -->
+    <view class="modal-overlay" v-if="showAddModal">
+      <view class="modal-box slide-up">
+        <view class="modal-header">
+          <text class="modal-title">新客开单建档</text>
+          <text class="close-btn" @click="showAddModal = false">✕</text>
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">顾客称呼</text>
+          <input class="form-input" v-model="form.nickname" placeholder="如: 陈女士" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">手机号码</text>
+          <input class="form-input" v-model="form.phone" type="tel" placeholder="请输入真实的11位手机号" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">宝宝昵称</text>
+          <input class="form-input" v-model="form.babyName" placeholder="如: 小汤圆" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">出生日期</text>
+          <input class="form-input" v-model="form.birthDate" type="date" />
+        </view>
+        <view class="form-item">
+          <text class="form-label">过敏史</text>
+          <input class="form-input" v-model="form.allergyInfo" placeholder="如: 无 / 牛奶蛋白过敏" />
+        </view>
+        
+        <button class="submit-btn bounce" @click="handleSubmitMemberAndOrder">建档并自动开单</button>
+      </view>
+    </view>
+
     <view class="section">
       <view class="section-header">
-        <text class="title">📋 今日专属任务</text>
-        <text class="badge">{{ pendingTasks.length }}个待处理</text>
+        <view class="title-with-icon">
+          <text class="title">📋 专属营销任务</text>
+        </view>
+        <text class="badge pulse">{{ pendingTasks.length }} 个待处理</text>
       </view>
+      
       <view class="task-list">
         <view class="task-card" v-for="task in pendingTasks" :key="task.id">
           <view class="task-info">
-            <text class="task-title">{{ task.title }}</text>
-            <text class="task-desc">顾客: {{ task.customerName }}</text>
+            <view class="task-head">
+              <text class="task-title">{{ task.title }}</text>
+              <text class="task-customer">👤 {{ task.customerName }}</text>
+            </view>
             <view class="ai-speech-box">
-              <text class="speech-label">✨ AI 建议话术:</text>
+              <text class="speech-label">🤖 AI 建议话术:</text>
               <text class="speech-text">{{ task.suggestedSpeech }}</text>
             </view>
           </view>
-          <button class="one-click-btn" @click="handleOneClickSend(task)">一键发送连带优惠券</button>
+          <view class="act-box">
+             <button class="one-click-btn ripple" @click="handleOneClickSend(task)">✔ 一键发送连带卡券</button>
+          </view>
         </view>
+        
         <view class="empty-state" v-if="pendingTasks.length === 0">
-          <text>太棒了！今日任务已全部完成 🎉</text>
-        </view>
-      </view>
-    </view>
-
-    <!-- 预警区：临期库存监控 -->
-    <view class="section warning-section">
-      <view class="section-header">
-        <text class="title">⚠️ 临期预警看板</text>
-      </view>
-      <view class="warning-list">
-        <view class="warning-item" v-for="item in expiringInventory" :key="item.id">
-          <view class="product-info">
-            <text class="product-name">{{ item.productName }}</text>
-            <text class="product-batch">批次: {{ item.batchCode }}</text>
-          </view>
-          <view class="expire-info">
-            <text class="expire-days">还有 <text class="highlight">{{ item.daysLeft }}</text> 天过期</text>
-            <text class="stock-count">滞销库存: {{ item.stock }} 罐</text>
-          </view>
+          <view class="empty-icon">🎉</view>
+          <text class="empty-txt">太棒了！今日没有需要关怀的任务</text>
         </view>
       </view>
     </view>
@@ -81,370 +106,315 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-// 假设这里引入了 uniapp 的 api，如 import { request, showToast } from '@uni/api'
 
-// 基础数据
 const employeeName = ref('李芳');
 const storeName = ref('育婴坊（向阳路店）');
 const todaySales = ref('3,250.00');
 const newMembers = ref(5);
 const recycleCount = ref(12);
 
-// 待办任务数据 (这些数据由后端的 ScrmService 定时任务生成)
-const pendingTasks = ref([
-  {
-    id: 't_001',
-    title: '【换段提醒】宝宝满6个月',
-    customerName: '王女士',
-    suggestedSpeech: '王姐您好！小宝马上满6个月啦，现在店里有2段超启能恩买大送小活动和空罐回收，您可以带空罐过来直接兑换积分哦！',
-    couponId: 'COUPON_STAGE2'
-  },
-  {
-    id: 't_002',
-    title: '【生日关怀】宝宝1周岁',
-    customerName: '陈女士',
-    suggestedSpeech: '陈姐，祝小宝1周岁生日快乐🎂！给您发了一张专属的生日无门槛代金券，有空来店里领取小礼物哦~',
-    couponId: 'COUPON_BIRTHDAY'
-  }
-]);
+const pendingTasks = ref([]);
 
-// 临期库存预警数据
-const expiringInventory = ref([
-  {
-    id: 'inv_001',
-    productName: '雀巢超启能恩1段 800g',
-    batchCode: 'NC202501X',
-    daysLeft: 45,
-    stock: 15
-  }
-]);
+// 弹窗状态与表单绑定
+const showAddModal = ref(false);
+const form = ref({
+  nickname: '',
+  phone: '',
+  babyName: '',
+  birthDate: '', 
+  allergyInfo: '无'
+});
 
-// 生命周期函数：页面加载时向后端请求最新数据
 onMounted(() => {
   fetchPendingTasks();
 });
 
-// 操作方法：调用真实后端接口
 const fetchPendingTasks = async () => {
   try {
     const res = await uni.request({
       url: 'http://localhost:3000/tasks',
       method: 'GET'
     });
-    
     if (res.data && Array.isArray(res.data)) {
-      pendingTasks.value = res.data; // 覆盖 Mock 数据，使用数据库和大模型里的真实数据！
+      pendingTasks.value = res.data;
     }
   } catch (error) {
     console.error('获取待办任务失败:', error);
   }
 };
 
-// 操作方法：一键发送话术
-const handleOneClickSend = (task) => {
-  // 实际项目中会调用微信 JS-SDK (wx.shareToExternalContact / wx.setClipboardData) 
-  // 将文本和优惠券小程序卡片直接调起分享给对应的微信客户
-  console.log(`正在转发话术与卡券: ${task.suggestedSpeech}`);
-  // 模拟发送成功
-  pendingTasks.value = pendingTasks.value.filter(t => t.id !== task.id);
-  // uni.showToast({ title: '发送成功', icon: 'success' })
-};
-
-// 操作方法：扫码核销空罐 (连接 罐爱计划)
-const handleScanRecycle = () => {
-  console.log('调起摄像头扫描空罐溯源码...');
-  uni.showToast({ title: '空罐回收成功，店员和顾客积分已发放！' })
-};
-
-// 操作方法：通过 API 添加真正的客户并为ta开一单
-const handleAddMemberAndOrder = async () => {
-  const nickname = prompt('请输入由于买奶粉新到店的妈妈称呼:', '赵女士');
-  if(!nickname) return;
-  const allergyInfo = prompt('请询问妈妈宝宝是否有过敏史:', '无');
-  if(allergyInfo === null) return;
-  
-  // 我们默认给她加上一个宝宝：为了能让AI马上处理，我们设置宝宝刚出生180天
-  const birthDate = new Date();
-  birthDate.setDate(birthDate.getDate() - 180);
-  const birthDateString = birthDate.toISOString();
-  
+const handleOneClickSend = async (task) => {
   try {
-    // 1. 发起录入客户的网络请求
+    await uni.request({
+      url: `http://localhost:3000/tasks/${task.id}/complete`,
+      method: 'PUT'
+    });
+    pendingTasks.value = pendingTasks.value.filter(t => t.id !== task.id);
+    uni.showToast({ title: '✓ 已发送顾客微信', icon: 'none' });
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const handleScanRecycle = () => {
+  uni.showToast({ title: '空罐回收成功！积分已抵扣', icon: 'none' })
+};
+
+const handleSubmitMemberAndOrder = async () => {
+  if(!form.value.nickname || !form.value.phone) {
+    alert('请填写顾客称呼和手机号码');
+    return;
+  }
+  
+  let submitDate = form.value.birthDate;
+  if (!submitDate) submitDate = new Date().toISOString(); // 如果没填，默认今天
+  else submitDate = new Date(submitDate).toISOString();
+
+  try {
     const resCustomer = await uni.request({
       url: 'http://localhost:3000/business/customer',
       method: 'POST',
       data: {
-        phone: '138' + Math.floor(Math.random() * 100000000),
-        nickname: nickname,
-        babyName: '未命名宝宝',
-        birthDate: birthDateString,
-        allergyInfo: allergyInfo
+        phone: form.value.phone,
+        nickname: form.value.nickname,
+        babyName: form.value.babyName || `${form.value.nickname}的宝宝`,
+        birthDate: submitDate,
+        allergyInfo: form.value.allergyInfo || '无'
       }
     });
-    
+
     if(resCustomer.data?.success) {
-      uni.showToast({ title: '顾客档案建立成功' });
-      
-      // 2. 发起收银的网络请求
-      const newCustomerId = resCustomer.data.data.id;
-      const resOrder = await uni.request({
+      uni.showToast({ title: '建档成功', icon: 'none' });
+      await uni.request({
         url: 'http://localhost:3000/business/order',
         method: 'POST',
-        data: { customerId: newCustomerId, quantity: 2 }
+        data: { customerId: resCustomer.data.data.id, quantity: 2 }
       });
-      
-      if(resOrder.data?.success) {
-        alert('恭喜，收银开单成功！由于设定了她宝宝今天刚刚满6个月，你可以马上去终端重新模拟触发一次凌晨AI任务，新话术就会被算出来了！');
-      }
+      alert('已成功开单并建入档案！稍后可访问 localhost:3000/trigger-scrm 让 AI 计算关怀的话术');
+      showAddModal.value = false;
+      // 清空表单
+      form.value = { nickname:'', phone:'', babyName:'', birthDate:'', allergyInfo:'无'};
+      fetchPendingTasks();
     }
   } catch (e) {
-    console.error('业务办理失败:', e);
-    alert('网络请求失败，请确保后台3000端口正开着');
+    console.error(e);
   }
+};
+
+const goToCustomers = () => {
+  uni.navigateTo({ url: '/pages/customers/index' });
 };
 </script>
 
 <style scoped>
-/* 极简、大字号、高对比度的下沉市场 UI 设计规范 */
+/* =========== 现代化/拟真 UI 设计 =========== */
 .dashboard-container {
-  padding: 16px;
-  background-color: #F5F7FA;
+  padding: 40rpx 30rpx;
+  background-color: #F0F4FC;
   min-height: 100vh;
-  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Helvetica, "Segoe UI", Arial, sans-serif;
+  box-sizing: border-box;
+  font-family: -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
 }
 
-/* 头部卡片 */
+.nav-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.logo-box {
+  font-size: 34rpx;
+  font-weight: 900;
+  color: #0056D2;
+}
+
+.nav-btn {
+  background: #FFF;
+  color: #0056D2;
+  font-size: 26rpx;
+  font-weight: bold;
+  padding: 14rpx 32rpx;
+  border-radius: 40rpx;
+  border: none;
+  box-shadow: 0 6rpx 16rpx rgba(0,86,210,0.1);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.nav-btn:active { transform: scale(0.95); }
+
 .header-card {
-  background: linear-gradient(135deg, #1890FF 0%, #0050B3 100%);
-  border-radius: 12px;
-  padding: 20px;
+  position: relative;
+  background: linear-gradient(135deg, #0052CC 0%, #0076FF 100%);
+  padding: 40rpx 40rpx 50rpx;
+  border-radius: 32rpx;
   color: #fff;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.2);
+  margin-bottom: 40rpx;
+  box-shadow: 0 16rpx 30rpx rgba(0, 118, 255, 0.25);
+  overflow: hidden;
 }
 
-.greeting {
-  margin-bottom: 16px;
+.sweep-bg::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 10%, transparent 60%);
 }
 
-.name {
-  font-size: 20px;
-  font-weight: 600;
-  display: block;
-}
-
-.store {
-  font-size: 14px;
-  opacity: 0.9;
-  margin-top: 4px;
-  display: block;
-}
+.greeting .name { font-size: 44rpx; font-weight: 800; display: block; margin-bottom: 8rpx; }
+.greeting .store { font-size: 26rpx; opacity: 0.85; font-weight: 500; }
 
 .stats-row {
   display: flex;
   justify-content: space-between;
+  margin-top: 50rpx;
 }
 
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.stat-item { text-align: center; flex: 1; position: relative; }
+.stat-item:not(:last-child)::after {
+  content: ""; position: absolute; right: 0; top: 10%; height: 80%; width: 1px; background: rgba(255,255,255,0.2);
 }
 
-.stat-value {
-  font-size: 22px;
-  font-weight: bold;
-}
+.stat-value { font-size: 40rpx; font-weight: 900; display: block; margin-bottom: 8rpx; }
+.stat-label { font-size: 22rpx; opacity: 0.8; }
 
-.stat-label {
-  font-size: 12px;
-  margin-top: 4px;
-  opacity: 0.8;
-}
-
-/* 快捷操作区 */
 .quick-actions {
   display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 24rpx;
+  margin-bottom: 40rpx;
 }
 
 .action-btn {
   flex: 1;
+  padding: 30rpx 0;
+  border-radius: 28rpx;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 14px 0;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 500;
   border: none;
+  cursor: pointer;
+  transition: transform 0.2s;
+  box-shadow: 0 8rpx 20rpx rgba(0,0,0,0.06);
 }
 
-.action-btn .icon {
-  margin-right: 6px;
-  font-size: 18px;
-}
+.action-btn:active { transform: scale(0.96); }
 
-.action-btn.primary {
-  background-color: #52C41A;
-  color: white;
-  box-shadow: 0 4px 10px rgba(82, 196, 26, 0.2);
-}
+.recycle-bg { background: #FFF; border: 2rpx solid #E8F0FE; }
+.recycle-bg .icon { color: #00BA7A; text-shadow: 0 4rpx 10rpx rgba(0,186,122,0.3); }
+.recycle-bg .btn-text { color: #333; font-weight: 700; font-size: 28rpx; }
 
-.action-btn.secondary {
-  background-color: #FFFFFF;
-  color: #333;
-  border: 1px solid #E8E8E8;
-}
+.add-bg { background: linear-gradient(135deg, #0056D2, #0045A8); color: #FFF; }
+.add-bg .icon { color: #FFF; text-shadow: 0 4rpx 10rpx rgba(0,0,0,0.2); }
+.add-bg .btn-text { font-weight: 700; font-size: 28rpx; }
 
-/* 区块通用样式 */
+.icon { font-size: 56rpx; margin-bottom: 12rpx; display: block; }
+
 .section {
-  margin-bottom: 20px;
+  background: #fff;
+  border-radius: 32rpx;
+  padding: 40rpx 30rpx;
+  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.03);
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 30rpx;
 }
 
-.section-header .title {
-  font-size: 18px;
-  font-weight: bold;
-  color: #333;
-}
+.title { font-size: 34rpx; font-weight: 900; color: #222; }
 
 .badge {
-  background-color: #FFF1F0;
-  color: #F5222D;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 12px;
+  background: #FFE8E8;
+  color: #FF4D4F;
+  font-size: 24rpx;
+  padding: 8rpx 20rpx;
+  border-radius: 30rpx;
+  font-weight: 800;
 }
 
-/* 任务卡片 */
+.pulse { animation: pulse 2s infinite; }
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.task-list { display: flex; flex-direction: column; gap: 24rpx; }
+
 .task-card {
-  background: #FFF;
-  border-radius: 10px;
-  padding: 16px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  background: #FAFBFC;
+  border-radius: 24rpx;
+  padding: 28rpx;
+  border: 1px solid #EAECEF;
 }
 
-.task-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-  display: block;
-}
-
-.task-desc {
-  font-size: 14px;
-  color: #666;
-  display: block;
-  margin-top: 6px;
-}
+.task-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16rpx; }
+.task-title { font-size: 30rpx; font-weight: 800; color: #111; }
+.task-customer { font-size: 26rpx; color: #666; font-weight: 600; padding: 4rpx 12rpx; background: #EEE; border-radius: 12rpx; }
 
 .ai-speech-box {
-  background-color: #F0F5FF;
-  padding: 12px;
-  border-radius: 8px;
-  margin-top: 10px;
-  margin-bottom: 16px;
+  background: #FFF;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  border-left: 8rpx solid #0076FF;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.02);
+  margin-bottom: 24rpx;
 }
 
-.speech-label {
-  font-size: 12px;
-  color: #1890FF;
-  font-weight: bold;
-  display: block;
-  margin-bottom: 4px;
-}
-
-.speech-text {
-  font-size: 14px;
-  color: #333;
-  line-height: 1.5;
-}
+.speech-label { font-size: 24rpx; color: #0076FF; font-weight: 900; display: block; margin-bottom: 10rpx; }
+.speech-text { font-size: 28rpx; color: #444; line-height: 1.6; }
 
 .one-click-btn {
-  background-color: #1890FF;
-  color: #FFF;
+  background: rgba(0,118,255,0.1);
+  color: #0076FF;
+  font-size: 28rpx;
+  padding: 20rpx;
+  border-radius: 16rpx;
   border: none;
-  padding: 12px 0;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: bold;
   width: 100%;
+  font-weight: 800;
+  cursor: pointer;
 }
 
-.empty-state {
-  text-align: center;
-  padding: 30px 0;
-  color: #999;
+.empty-state { text-align: center; padding: 80rpx 0; }
+.empty-icon { font-size: 80rpx; margin-bottom: 20rpx; display: block; }
+.empty-txt { color: #999; font-size: 28rpx; font-weight: 500; }
+
+/* 弹窗 UI */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: flex-end;
+  z-index: 999;
+}
+.modal-box {
   background: #FFF;
-  border-radius: 10px;
+  width: 100%;
+  border-radius: 40rpx 40rpx 0 0;
+  padding: 40rpx;
+  box-sizing: border-box;
 }
-
-/* 预警列表 */
-.warning-list {
-  background: #FFF;
-  border-radius: 10px;
-  padding: 16px;
+.slide-up {
+  animation: slideUp 0.3s ease-out forwards;
 }
-
-.warning-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 0;
-  border-bottom: 1px solid #F0F0F0;
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
-
-.warning-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.product-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.product-name {
-  font-size: 15px;
-  font-weight: 500;
-  color: #333;
-}
-
-.product-batch {
-  font-size: 12px;
-  color: #999;
-  margin-top: 4px;
-}
-
-.expire-info {
-  text-align: right;
-  display: flex;
-  flex-direction: column;
-}
-
-.expire-days {
-  font-size: 14px;
-  color: #666;
-}
-
-.expire-days .highlight {
-  color: #FAAD14;
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.stock-count {
-  font-size: 12px;
-  color: #999;
-  margin-top: 4px;
-}
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40rpx; }
+.modal-title { font-size: 34rpx; font-weight: 900; color: #222; }
+.close-btn { font-size: 40rpx; color: #999; cursor: pointer; }
+.form-item { margin-bottom: 30rpx; }
+.form-label { font-size: 28rpx; color: #555; font-weight: bold; margin-bottom: 12rpx; display: block; }
+.form-input { width: 100%; padding: 24rpx; font-size: 30rpx; box-sizing: border-box; background: #F7F8FA; border: 1px solid #EAECEA; border-radius: 16rpx; transition: border 0.3s; }
+.form-input:focus { border-color: #0076FF; outline: none; background: #FFF;}
+.submit-btn { width: 100%; background: linear-gradient(135deg,#0076FF,#0052CC); color: #FFF; font-size: 32rpx; font-weight: bold; padding: 28rpx; border-radius: 20rpx; border: none; margin-top: 30rpx; }
 </style>

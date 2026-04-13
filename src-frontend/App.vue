@@ -1,11 +1,36 @@
 <template>
-  <div>
-    <App />
-  </div>
+  <view class="app-wrapper">
+    <Dashboard v-if="currentPath === '/pages/dashboard/index'" />
+    <Customers v-if="currentPath === '/pages/customers/index'" />
+  </view>
 </template>
 
 <script setup>
-import App from './pages/dashboard/index.vue';
+import { ref, onMounted, onUnmounted } from 'vue';
+import Dashboard from './pages/dashboard/index.vue';
+import Customers from './pages/customers/index.vue';
+
+const currentPath = ref('/pages/dashboard/index');
+
+const handleRouteChange = (e) => {
+  currentPath.value = e.detail;
+};
+
+onMounted(() => {
+  window.addEventListener('app-route', handleRouteChange);
+  
+  // 注入到uni全局以供调用
+  window.uni.navigateTo = ({ url }) => {
+    currentPath.value = url;
+  };
+  window.uni.navigateBack = () => {
+    currentPath.value = '/pages/dashboard/index';
+  };
+});
+
+onUnmounted(() => {
+  window.removeEventListener('app-route', handleRouteChange);
+});
 </script>
 
 <style>

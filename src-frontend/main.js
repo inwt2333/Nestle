@@ -1,13 +1,15 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 
-// 注入模拟的小程序全局 API，让写给 uni-app 的代码在 Chrome 浏览器里也能跑通
 window.uni = {
   request: async (options) => {
     try {
       const response = await fetch(options.url, {
         method: options.method || 'GET',
-        headers: options.header || {},
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.header || {})
+        },
         body: options.data ? JSON.stringify(options.data) : undefined,
       });
       const data = await response.json();
@@ -20,10 +22,19 @@ window.uni = {
     }
   },
   showToast: (opts) => {
-    alert(opts.title || '操作成功');
+    // 简单模拟手机toast
+    console.log('[Toast] ', opts.title);
+    setTimeout(() => alert(opts.title || '操作成功'), 10);
   },
   scanCode: () => {
     alert('【模拟】已成功调起浏览器摄像头扫描二维码...');
+  },
+  // 简易路由
+  navigateTo: ({ url }) => {
+    window.dispatchEvent(new CustomEvent('app-route', { detail: url }));
+  },
+  navigateBack: () => {
+    window.dispatchEvent(new CustomEvent('app-route', { detail: '/pages/dashboard/index' }));
   }
 };
 
