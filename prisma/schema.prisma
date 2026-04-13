@@ -1,0 +1,202 @@
+// schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==========================================
+// 1. 门店域 (B端基础)
+// ==========================================
+
+model Store {
+  id            String    @id @default(uuid())
+  name          String    // 门店名称
+  address       String    // 详细地址
+  longitude     Float     // 经度 (用于 C端 LBS 匹配)
+  latitude      Float     // 纬度 (用于 C端 LBS 匹配)
+  status        Int       @default(1) // 营业状态
+  
+  // 关联
+  employees       Employee[]
+  inventories     Inventory[]
+  orders          Order[]
+  recycleRecords  RecycleRecord[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Employee {
+  id               String    @id @default(uuid())
+  storeId          String
+  name             String
+  phone            String    @unique
+  role             String    @default("CLERK") // 店长/店员
+  points           Int       @default(0) // 员工积分/现金奖励池
+  trainingProgress Json?     // 培训进度记录
+  
+  store            Store     @relation(fields: [storeId], references: [id])
+  recycleRecords   RecycleRecord[]
+  tasks            EmployeeTask[]
+  
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+// ==========================================
+// 2. 消费者域 (C端核心)
+// ==========================================
+
+model Customer {
+  id             String    @id @default(uuid())
+  unionId        String?   @unique // 微信 UnionID
+  openId         String    @unique // 小程序 OpenID
+  phone          String?   @unique
+  nickname       String?
+  avatar         String?
+  
+  // 核心业务字段
+  points         Int       @default(0) // 常规消费积分
+  recyclePoints  Int       @default(0) // 环保/罐爱计划专属积分
+  memberLevel    Int       @default(1) // 会员等级
+  
+  // 关联
+  babyProfiles   BabyProfile[]
+  orders         Order[]
+  recycleRecords RecycleRecord[]
+  employeeTasks  EmployeeTask[]
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model BabyProfile {
+  id             String    @id @default(uuid())
+  customerId     String
+  name           String?   // 宝宝昵称
+  birthDate      DateTime  // 出生日期 (核心：用于推算段位和发送关怀提醒)
+  feedingType    String?   // 喂养方式: BREAST(母乳)/FORMULA(配方奶)/MIXED(混合)
+  allergyInfo    String?   // 过敏史 (如: 牛奶蛋白过敏)
+  
+  customer       Customer  @relation(fields: [customerId], references: [id])
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+// ==========================================
+// 3. 商品与库存域 (bC联动纽带)
+// ==========================================
+
+model Product {
+  id             String    @id @default(uuid())
+  skuCode        String    @unique   // SKU编码
+  name           String    // 产品名称 (如: 雀巢超启能恩3段)
+  category       String    // 分类
+  shelfLifeDays  Int       // 保质期标准(天)，用于临期计算
+  traceability   Json?     // 溯源基础信息
+  
+  inventories    Inventory[]
+  orderItems     OrderItem[]
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Inventory {
+  id             String    @id @default(uuid())
+  storeId        String
+  productId      String
+  batchCode      String    // 批次号 (防窜货监测)
+  productionDate DateTime  // 生产日期
+  expirationDate DateTime  // 过期时间 (系统根据 productionDate + shelfLifeDays 自动运算写入)
+  stock          Int       @default(0) // 当前库存量
+  
+  store          Store     @relation(fields: [storeId], references: [id])
+  product        Product   @relation(fields: [productId], references: [id])
+  
+  @@unique([storeId, productId, batchCode]) // 同一门店、同一商品、同一批次唯一
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+// ==========================================
+// 4. 交易与O2O域
+// ==========================================
+
+model Order {
+  id             String    @id @default(uuid())
+  orderNo        String    @unique
+  customerId     String
+  storeId        String    // O2O核心：订单归属门店 (LBS分配)
+  totalAmount    Decimal
+  status         String    // PENDING, PAID, SHIPPED, COMPLETED, CANCELLED
+  deliveryType   String    // PICKUP(自提), DELIVERY(门店配送)
+  
+  customer       Customer  @relation(fields: [customerId], references: [id])
+  store          Store     @relation(fields: [storeId], references: [id])
+  items          OrderItem[]
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model OrderItem {
+  id             String    @id @default(uuid())
+  orderId        String
+  productId      String
+  quantity       Int
+  price          Decimal
+  
+  order          Order     @relation(fields: [orderId], references: [id])
+  product        Product   @relation(fields: [productId], references: [id])
+}
+
+// ==========================================
+// 5. SCRM 营销与店员任务域
+// ==========================================
+
+model EmployeeTask {
+  id               String    @id @default(uuid())
+  employeeId       String
+  customerId       String
+  taskType         String    // 任务类型 (如 CARE_AND_SALES)
+  title            String    // 任务标题
+  suggestedSpeech  String?   // AI 生成的建议话术
+  couponId         String?   // 附带发送的优惠券ID
+  status           String    @default("PENDING") // PENDING(待处理), COMPLETED(已发送)
+
+  employee         Employee  @relation(fields: [employeeId], references: [id])
+  customer         Customer  @relation(fields: [customerId], references: [id])
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+// ==========================================
+// 6. 罐爱计划 (双向引流与环保记录核心)
+// ==========================================
+
+model RecycleRecord {
+  id               String    @id @default(uuid())
+  serialNumber     String    @unique // 罐底防伪溯源码 (确保一罐只回收一次)
+  customerId       String    // C端消费者
+  storeId          String    // B端回收门店
+  employeeId       String    // B端核销操作店员
+  
+  consumerPoints   Int       // 此次回收发放给 C端 的环保积分
+  storePoints      Int       // 此次回收发放给 B端(或店员) 的奖励积分/返利
+  status           String    // PENDING(扫码待确认), COMPLETED(店员已核销)
+  
+  customer         Customer  @relation(fields: [customerId], references: [id])
+  store            Store     @relation(fields: [storeId], references: [id])
+  employee         Employee  @relation(fields: [employeeId], references: [id])
+  
+  createdAt        DateTime  @default(now()) // 回收投递/核销时间
+  updatedAt        DateTime  @updatedAt
+}
