@@ -1,21 +1,25 @@
 {
-	"pages": [
-		{
-			"path": "pages/dashboard/index",
-			"style": { "navigationBarTitleText": "WMS & SCRM 工作台", "navigationStyle": "custom" }
-		},
-		{
-			"path": "pages/customers/index",
-			"style": { "navigationBarTitleText": "客户生命周期管理", "navigationStyle": "default" }
-		},
-		{
-			"path": "pages/inventory/index",
-			"style": { "navigationBarTitleText": "库存中心", "navigationStyle": "custom" }
-		}
-	],
-	"globalStyle": {
-		"navigationBarTextStyle": "black",
-		"navigationBarBackgroundColor": "#F8F9FA",
-		"backgroundColor": "#F8F9FA"
-	}
+        "pages": [
+                {
+                        "path": "pages/dashboard/index",
+                        "style": { "navigationBarTitleText": "WMS & SCRM 工作台", "navigationStyle": "custom" }
+                },
+                {
+                        "path": "pages/customers/index",
+                        "style": { "navigationBarTitleText": "客户生命周期管理", "navigationStyle": "default" }
+                },
+                {
+                        "path": "pages/inventory/index",
+                        "style": { "navigationBarTitleText": "库存中心", "navigationStyle": "custom" }
+                },
+                {
+                        "path": "pages/training/index",
+                        "style": { "navigationBarTitleText": "店长与店员培训", "navigationStyle": "custom" }
+                }
+        ],
+        "globalStyle": {
+                "navigationBarTextStyle": "black",
+                "navigationBarBackgroundColor": "#F8F9FA",
+                "backgroundColor": "#F8F9FA"
+        }
 }

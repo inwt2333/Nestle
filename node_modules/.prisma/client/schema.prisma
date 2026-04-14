@@ -43,6 +43,7 @@ model Employee {
   store            Store     @relation(fields: [storeId], references: [id])
   recycleRecords   RecycleRecord[]
   tasks            EmployeeTask[]
+  assessments      Assessment[]
   
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
@@ -99,6 +100,7 @@ model Product {
   skuCode        String    @unique   // SKU编码
   name           String    // 产品名称 (如: 雀巢超启能恩3段)
   category       String    // 分类
+  price          Float     @default(0) // 价格
   shelfLifeDays  Int       // 保质期标准(天)，用于临期计算
   traceability   Json?     // 溯源基础信息
   
@@ -200,4 +202,58 @@ model RecycleRecord {
   
   createdAt        DateTime  @default(now()) // 回收投递/核销时间
   updatedAt        DateTime  @updatedAt
+}
+
+// ==========================================
+// 7. 店员培训与考核域
+// ==========================================
+
+model KnowledgeArticle {
+  id            String    @id @default(uuid())
+  title         String
+  category      String    // PRODUCT(产品知识), PARENTING(育儿知识)
+  content       String    // 文章内容/卖点/答疑
+  videoUrl      String?   // 视频课程链接
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Assessment {
+  id                  String    @id @default(uuid())
+  employeeId          String
+  period              String    // 考核周期如: 2026-H1 (2026年上半年)
+  knowledgeScore      Float     // 知识测评得分
+  ownerReviewScore    Float     // 店主评价得分
+  customerReviewScore Float     // 客情评价得分
+  finalScore          Float     // 综合评分
+  result              String    // 奖惩结果
+  
+  employee            Employee  @relation(fields: [employeeId], references: [id])
+  
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+}
+
+// ==========================================
+// 8. 后台管理扩展域
+// ==========================================
+model ProductCategory {
+  id             String    @id @default(uuid())
+  name           String    @unique
+  description    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model GiftItem {
+  id             String    @id @default(uuid())
+  name           String
+  description    String?
+  pointsRequired Int
+  stock          Int       @default(0)
+  redeemType     String    // CONSUMER (常规积分) / RECYCLE (环保积分)
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 }

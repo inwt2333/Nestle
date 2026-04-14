@@ -171,13 +171,14 @@
             <select class="value custom-select" v-model="redeemForm.selectedOption">
               <option disabled value="">请选择礼品</option>
               <optgroup label="消费积分专区">
-                <option value="points-500-50元抵扣券">50元抵扣券 (消耗500消费积分)</option>
-                <option value="points-1000-雀巢定制口水巾">雀巢定制口水巾 (消耗1000消费积分)</option>
-                <option value="points-2000-配方奶体验装">配方奶体验装 (消耗2000消费积分)</option>
+                <option v-for="g in gifts.filter(g => g.redeemType === 'CONSUMER')" :key="g.id" :value="'points-' + g.pointsRequired + '-' + g.name">
+                  {{ g.name }} (消耗{{ g.pointsRequired }}消费积分)
+                </option>
               </optgroup>
               <optgroup label="环保积分专区">
-                <option value="recyclePoints-1-环保帆布袋">环保帆布袋 (消耗1个回收积分)</option>
-                <option value="recyclePoints-5-雀巢周边盲盒">周边盲盒 (消耗5个回收积分)</option>
+                <option v-for="g in gifts.filter(g => g.redeemType === 'RECYCLE')" :key="g.id" :value="'recyclePoints-' + g.pointsRequired + '-' + g.name">
+                  {{ g.name }} (消耗{{ g.pointsRequired }}环保积分)
+                </option>
               </optgroup>
             </select>
           </view>
@@ -209,6 +210,14 @@ const purchaseForm = ref({ productId: '', quantity: 1 });
 // 积分兑换相关
 const showRedeemModal = ref(false);
 const redeemForm = ref({ selectedOption: '' });
+const gifts = ref([]);
+
+const fetchGifts = async () => {
+  try {
+    const res = await uni.request({ url: "http://localhost:3000/admin/gifts", method: "GET" });
+    if (res.data) gifts.value = res.data;
+  } catch(e) {}
+};
 
 const fetchCustomers = async () => {
   try {
@@ -229,6 +238,7 @@ const fetchCustomers = async () => {
 
 onMounted(() => {
   fetchCustomers();
+  fetchGifts();
 });
 
 // 计算属性：搜索与标签过滤

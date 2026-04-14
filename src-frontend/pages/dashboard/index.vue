@@ -5,6 +5,8 @@
       <view class="nav-actions">
         <button class="nav-btn" @click="goToCustomers">👥 客情中心</button>
         <button class="nav-btn" @click="goToInventory">📦 仓储与补货</button>
+        <button class="nav-btn" @click="goToTraining">🎓 店员培训</button>
+        <button class="nav-btn" @click="goToAdmin">⚙️ 管理后台</button>
       </view>
     </view>
     
@@ -38,6 +40,31 @@
         <text class="icon">➕</text>
         <text class="btn-text">录客开单</text>
       </button>
+    </view>
+
+    <!-- 空罐回收弹窗 -->
+    <view class="modal-overlay" v-if="showRecycleModal">
+      <view class="modal-box slide-up">
+        <view class="modal-header">
+          <text class="modal-title">空罐回收核销</text>
+          <text class="close-btn" @click="showRecycleModal = false">✕</text>
+        </view>
+        
+        <view class="form-item">
+          <text class="form-label">绑定顾客</text>
+          <select class="form-input" v-model="recycleForm.customerId">
+            <option disabled value="">请选择核销顾客...</option>
+            <option v-for="c in customersList" :key="c.id" :value="c.id">{{ c.nickname || c.phone }}</option>
+          </select>
+        </view>
+
+        <view class="form-item">
+          <text class="form-label">罐底溯源码</text>
+          <input class="form-input" v-model="recycleForm.serialNumber" placeholder="点击扫码或手动输入(选填)" />
+        </view>
+        
+        <button class="submit-btn bounce" @click="submitRecycle">确认回收返积分</button>
+      </view>
     </view>
 
     <!-- 自定义录客弹窗 -->
@@ -95,6 +122,7 @@
           </view>
           <view class="act-box">
              <button class="one-click-btn ripple" @click="handleOneClickSend(task)">✔ 一键发送连带卡券</button>
+             <button class="close-task-btn" @click="handleIgnoreTask(task.id)">✕ 忽略</button>
           </view>
         </view>
         
@@ -126,6 +154,14 @@ const form = ref({
   babyName: '',
   birthDate: '', 
   allergyInfo: '无'
+});
+
+// 空罐回收弹窗绑定
+const showRecycleModal = ref(false);
+const customersList = ref([]);
+const recycleForm = ref({
+  customerId: '',
+  serialNumber: ''
 });
 
 onMounted(() => {
@@ -178,8 +214,56 @@ const handleOneClickSend = async (task) => {
   }
 };
 
-const handleScanRecycle = () => {
-  uni.showToast({ title: '空罐回收成功！积分已抵扣', icon: 'none' })
+const handleIgnoreTask = async (taskId) => {
+  try {
+    await uni.request({
+      url: `http://localhost:3000/tasks/${taskId}/ignore`,
+      method: 'PUT'
+    });
+    pendingTasks.value = pendingTasks.value.filter(t => t.id !== taskId);
+    uni.showToast({ title: '✕ 任务已忽略', icon: 'none' });
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+const handleScanRecycle = async () => {
+  try {
+    const res = await uni.request({
+      url: 'http://localhost:3000/business/customers',
+      method: 'GET'
+    });
+    if (res.data) {
+      customersList.value = res.data;
+    }
+    showRecycleModal.value = true;
+  } catch (e) {
+    console.error('获取顾客列表失败', e);
+  }
+};
+
+const submitRecycle = async () => {
+  if (!recycleForm.value.customerId) {
+    uni.showToast({ title: '请选择绑定顾客', icon: 'none' });
+    return;
+  }
+  try {
+    const res = await uni.request({
+      url: 'http://localhost:3000/business/recycle',
+      method: 'POST',
+      data: recycleForm.value
+    });
+    if (res.data?.success) {
+      uni.showToast({ title: res.data.message, icon: 'none' });
+      showRecycleModal.value = false;
+      recycleForm.value = { customerId: '', serialNumber: '' };
+      fetchDashboardStats();
+    } else {
+      uni.showToast({ title: res.data?.message || '核销失败', icon: 'none' });
+    }
+  } catch (e) {
+    console.error('回收失败', e);
+  }
 };
 
 const handleSubmitMemberAndOrder = async () => {
@@ -230,6 +314,11 @@ const goToCustomers = () => {
 
 const goToInventory = () => {
   uni.navigateTo({ url: '/pages/inventory/index' });
+};
+
+const goToAdmin = () => { uni.navigateTo({ url: '/pages/admin/index' }); };
+const goToTraining = () => {
+  uni.navigateTo({ url: '/pages/training/index' });
 };
 </script>
 
@@ -397,14 +486,25 @@ const goToInventory = () => {
 .speech-label { font-size: 24rpx; color: #0076FF; font-weight: 900; display: block; margin-bottom: 10rpx; }
 .speech-text { font-size: 28rpx; color: #444; line-height: 1.6; }
 
+.act-box { display: flex; gap: 16rpx; }
 .one-click-btn {
+  flex: 1;
   background: rgba(0,118,255,0.1);
   color: #0076FF;
   font-size: 28rpx;
   padding: 20rpx;
   border-radius: 16rpx;
   border: none;
-  width: 100%;
+  font-weight: 800;
+  cursor: pointer;
+}
+.close-task-btn {
+  background: rgba(234,67,53,0.1);
+  color: #EA4335;
+  font-size: 28rpx;
+  padding: 20rpx 40rpx;
+  border-radius: 16rpx;
+  border: none;
   font-weight: 800;
   cursor: pointer;
 }

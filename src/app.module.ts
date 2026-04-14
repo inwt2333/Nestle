@@ -7,12 +7,14 @@ import { AppController } from './app.controller';
 import { TaskController } from './task.controller';
 import { BusinessController } from './business.controller';
 import { InventoryController } from './inventory.controller';
+import { TrainingController } from './training.controller';
+import { AdminController } from './admin.controller';
 
 @Module({
   imports: [
     ScheduleModule.forRoot(),
   ],
-  controllers: [AppController, TaskController, BusinessController, InventoryController],
+  controllers: [AppController, TaskController, BusinessController, InventoryController, TrainingController, AdminController],
   providers: [AiService, PrismaService, ScrmService],
 })
 export class AppModule {}

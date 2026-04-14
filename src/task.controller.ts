@@ -42,4 +42,13 @@ export class TaskController {
       data: { status: 'COMPLETED' },
     });
   }
+
+  @Put(':id/ignore')
+  async ignoreTask(@Param('id') id: string) {
+    // 设置状态为 IGNORED，下次不显示给店员
+    return this.prisma.employeeTask.update({
+      where: { id },
+      data: { status: 'IGNORED' },
+    });
+  }
 }

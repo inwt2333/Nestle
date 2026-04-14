@@ -1,0 +1,94 @@
+--- src-frontend/pages/dashboard/index.vue
++++ src-frontend/pages/dashboard/index.vue
+@@ -38,6 +38,24 @@
+       </button>
+     </view>
+ 
++    <!-- 空罐回收弹窗 -->
++    <view class="modal-overlay" v-if="showRecycleModal">
++      <view class="modal-box slide-up">
++        <view class="modal-header">
++          <text class="modal-title">空罐回收核销</text>
++          <text class="close-btn" @click="showRecycleModal = false">✕</text>
++        </view>
++        
++        <view class="form-item">
++          <text class="form-label">绑定顾客</text>
++          <select class="form-input" v-model="recycleForm.customerId">
++            <option disabled value="">请选择核销顾客...</option>
++            <option v-for="c in customersList" :key="c.id" :value="c.id">{{ c.nickname || c.phone }}</option>
++          </select>
++        </view>
++
++        <view class="form-item">
++          <text class="form-label">罐底溯源码</text>
++          <input class="form-input" v-model="recycleForm.serialNumber" placeholder="点击扫码或手动输入(选填)" />
++        </view>
++        
++        <button class="submit-btn bounce" @click="submitRecycle">确认回收返积分</button>
++      </view>
++    </view>
++
+     <!-- 自定义录客弹窗 -->
+     <view class="modal-overlay" v-if="showAddModal">
+@@ -118,6 +136,13 @@
+   allergyInfo: '无'
+ });
+ 
++// 空罐回收弹窗绑定
++const showRecycleModal = ref(false);
++const customersList = ref([]);
++const recycleForm = ref({
++  customerId: '',
++  serialNumber: ''
++});
++
+ onMounted(() => {
+   fetchDashboardStats();
+   fetchPendingTasks();
+@@ -194,8 +219,39 @@
+   }
+ };
+ 
+-const handleScanRecycle = () => {
+-  uni.showToast({ title: '空罐回收成功！积分已抵扣', icon: 'none' })
++const handleScanRecycle = async () => {
++  try {
++    const res = await uni.request({
++      url: 'http://localhost:3000/business/customers',
++      method: 'GET'
++    });
++    if (res.data) {
++      customersList.value = res.data;
++    }
++    showRecycleModal.value = true;
++  } catch (e) {
++    console.error('获取顾客列表失败', e);
++  }
++};
++
++const submitRecycle = async () => {
++  if (!recycleForm.value.customerId) {
++    uni.showToast({ title: '请选择绑定顾客', icon: 'none' });
++    return;
++  }
++  try {
++    const res = await uni.request({
++      url: 'http://localhost:3000/business/recycle',
++      method: 'POST',
++      data: recycleForm.value
++    });
++    if (res.data?.success) {
++      uni.showToast({ title: res.data.message, icon: 'none' });
++      showRecycleModal.value = false;
++      recycleForm.value = { customerId: '', serialNumber: '' };
++      fetchDashboardStats();
++    } else {
++      uni.showToast({ title: res.data?.message || '核销失败', icon: 'none' });
++    }
++  } catch (e) {
++    console.error('回收失败', e);
++  }
+ };
+ 
+ const handleSubmitMemberAndOrder = async () => {

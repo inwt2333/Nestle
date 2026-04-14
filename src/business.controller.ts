@@ -97,6 +97,37 @@ export class BusinessController {
     return { success: true, message: '开单成功', data: order };
   }
 
+  @Post('recycle')
+  async scanRecycle(@Body() data: { customerId: string; serialNumber?: string }) {
+    const store = await this.prisma.store.findFirst();
+    const employee = await this.prisma.employee.findFirst();
+    
+    if (!store || !employee) return { success: false, message: '系统门店或员工数据异常' };
+
+    const sn = data.serialNumber || `SN${Date.now()}`;
+    const exist = await this.prisma.recycleRecord.findUnique({ where: { serialNumber: sn } });
+    if (exist) return { success: false, message: '该空罐已核销，请勿重复扫描' };
+
+    const record = await this.prisma.recycleRecord.create({
+      data: {
+        serialNumber: sn,
+        customerId: data.customerId,
+        storeId: store.id,
+        employeeId: employee.id,
+        consumerPoints: 50,
+        storePoints: 10,
+        status: 'COMPLETED'
+      }
+    });
+
+    await this.prisma.customer.update({
+      where: { id: data.customerId },
+      data: { recyclePoints: { increment: 50 } }
+    });
+
+    return { success: true, message: '空罐回收成功，获取环保积分+50', data: record };
+  }
+
   @Get('dashboard-stats')
   async getDashboardStats() {
     const today = new Date();

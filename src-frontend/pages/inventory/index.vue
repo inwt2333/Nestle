@@ -21,27 +21,48 @@
       <view class="table-container">
         <view class="table-header">
           <text class="th flex-2">商品名称</text>
-          <text class="th">库存量</text>
-          <text class="th">保质预警</text>
-          <text class="th flex-action">操作(盘点)</text>
+          <text class="th">总库存量</text>
+          <text class="th">保质期</text>
+          <text class="th flex-action">操作</text>
         </view>
-        <view class="table-row" v-for="item in inventories" :key="item.id">
-          <view class="td flex-2">
-            <text class="p-name">{{ item.product ? item.product.name : '未知产品' }}</text>
-            <text class="p-sku">批次: {{ item.batchCode }}</text>
+        <template v-for="group in groupedInventories" :key="group.productId">
+          <!-- 主商品行 -->
+          <view class="table-row" style="background:#f1f5f9; font-weight:bold;">
+            <view class="td flex-2">
+              <text class="p-name">{{ group.productName }}</text>
+            </view>
+            <view class="td">
+              <text class="stock-val">{{ group.totalStock }} 件</text>
+            </view>
+            <view class="td">
+              <text>{{ group.shelfLifeDays }}天</text>
+            </view>
+            <view class="td flex-action">
+              <button class="btn-stocktake" @click="group.expanded = !group.expanded">
+                {{ group.expanded ? '收起' : '展开批次' }}
+              </button>
+            </view>
           </view>
-          <view class="td">
-            <text class="stock-val">{{ item.stock }} 件</text>
+          <!-- 展开的批次明细行 -->
+          <view v-if="group.expanded">
+             <view class="table-row" v-for="item in group.batches" :key="item.id" style="padding-left:40rpx; border-bottom:1px dashed #eee;">
+                <view class="td flex-2">
+                  <text class="p-sku">批次: {{ item.batchCode }}</text>
+                </view>
+                <view class="td">
+                  <text class="stock-val">{{ item.stock }} 件</text>
+                </view>
+                <view class="td">
+                  <text class="expire-badge" :class="item.isWarning ? 'danger-bg' : 'safe-bg'">
+                    {{ item.daysLeft > 0 ? (item.daysLeft + '天过期') : '已过期' }}
+                  </text>
+                </view>
+                <view class="td flex-action">
+                  <button class="btn-stocktake" style="background:#10b981; color:white; border:none;" @click="openStocktake(item)">盘点</button>
+                </view>
+             </view>
           </view>
-          <view class="td">
-            <text class="expire-badge" :class="item.isWarning ? 'danger-bg' : 'safe-bg'">
-              {{ item.daysLeft > 0 ? (item.daysLeft + '天过期') : '已过期' }}
-            </text>
-          </view>
-          <view class="td flex-action">
-            <button class="btn-stocktake" @click="openStocktake(item)">校准</button>
-          </view>
-        </view>
+        </template>
         <view v-if="inventories.length === 0" class="empty-state">
           <text>当前仓库空空如也，请先入库。</text>
         </view>
@@ -107,10 +128,50 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-
+import { ref, onMounted, computed } from 'vue';
 const activeTab = ref('list');
 const inventories = ref([]);
+const products = ref([]);
+
+const groupedInventories = computed(() => {
+  const map = {};
+  
+  // 先把所有后台商品放入 map
+  products.value.forEach(p => {
+    map[p.id] = {
+      productId: p.id,
+      productName: p.name,
+      shelfLifeDays: p.shelfLifeDays || 365,
+      totalStock: 0,
+      expanded: false,
+      batches: []
+    };
+  });
+
+  // 再遍历库存批次累计
+  inventories.value.forEach(item => {
+    const pid = item.productId || 'unknown';
+    if (!map[pid]) {
+      map[pid] = {
+        productId: pid,
+        productName: item.product ? item.product.name : '未知产品',
+        shelfLifeDays: item.product ? item.product.shelfLifeDays : 365,
+        totalStock: 0,
+        expanded: false,
+        batches: []
+      };
+    }
+    map[pid].totalStock += item.stock;
+    map[pid].batches.push(item);
+  });
+  
+  // 有库存批次的则默认展开
+  Object.values(map).forEach(group => {
+    group.expanded = group.batches.length > 0;
+  });
+
+  return Object.values(map);
+});
 const loadingAi = ref(false);
 const aiAdvice = ref('');
 
@@ -127,7 +188,15 @@ const newStockVal = ref('');
 
 onMounted(() => {
   fetchInventory();
+  fetchProducts();
 });
+
+const fetchProducts = async () => {
+  try {
+    const res = await uni.request({ url: 'http://localhost:3000/admin/products', method: 'GET' });
+    if (res.data) products.value = res.data;
+  } catch(e) { console.error(e); }
+};
 
 const fetchInventory = async () => {
   try {

@@ -1,0 +1,11 @@
+--- src-frontend/pages/dashboard/index.vue
++++ src-frontend/pages/dashboard/index.vue
+@@ -242,5 +242,7 @@
+ 
+ const goToAdmin = () => { uni.navigateTo({ url: '/pages/admin/index' }); };
+ const goToTraining = () => {
+   uni.navigateTo({ url: '/pages/training/index' });
++};
++</script>
+ 
+ <style scoped>

@@ -1,0 +1,20 @@
+--- src-frontend/App.vue
++++ src-frontend/App.vue
+@@ -3,17 +3,19 @@
+     <Dashboard v-if="currentPath === '/pages/dashboard/index'" />
+     <Customers v-if="currentPath === '/pages/customers/index'" />
+     <Inventory v-if="currentPath === '/pages/inventory/index'" />
+     <Training v-if="currentPath === '/pages/training/index'" />
++    <Admin v-if="currentPath === '/pages/admin/index'" />
+   </view>
+ </template>
+ 
+ <script setup>
+ import { ref, onMounted, onUnmounted } from 'vue';
+ import Dashboard from './pages/dashboard/index.vue';
+ import Customers from './pages/customers/index.vue';
+ import Inventory from './pages/inventory/index.vue';
+ import Training from './pages/training/index.vue';
++import Admin from './pages/admin/index.vue';
+ 
+ const currentPath = ref('/pages/dashboard/index');
