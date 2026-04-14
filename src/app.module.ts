@@ -6,12 +6,13 @@ import { ScrmService } from './scrm/scrm.service';
 import { AppController } from './app.controller';
 import { TaskController } from './task.controller';
 import { BusinessController } from './business.controller';
+import { InventoryController } from './inventory.controller';
 
 @Module({
   imports: [
-    ScheduleModule.forRoot(), // 启用定时任务支持
+    ScheduleModule.forRoot(),
   ],
-  controllers: [AppController, TaskController, BusinessController],
+  controllers: [AppController, TaskController, BusinessController, InventoryController],
   providers: [AiService, PrismaService, ScrmService],
 })
 export class AppModule {}

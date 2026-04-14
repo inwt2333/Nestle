@@ -1,8 +1,11 @@
 <template>
   <view class="dashboard-container">
     <view class="nav-bar">
-      <view class="logo-box">🍼 <text class="logo-text">bC平台</text></view>
-      <button class="nav-btn shadow-btn" @click="goToCustomers">👥 客户管理</button>
+      <view class="logo-box">🍼 <text class="logo-text">bC数字化平台</text></view>
+      <view class="nav-actions">
+        <button class="nav-btn" @click="goToCustomers">👥 客情中心</button>
+        <button class="nav-btn" @click="goToInventory">📦 仓储与补货</button>
+      </view>
     </view>
     
     <view class="header-card sweep-bg">
@@ -108,10 +111,10 @@
 import { ref, onMounted } from 'vue';
 
 const employeeName = ref('李芳');
-const storeName = ref('育婴坊（向阳路店）');
-const todaySales = ref('3,250.00');
-const newMembers = ref(5);
-const recycleCount = ref(12);
+const storeName = ref('加载中...');
+const todaySales = ref('0.00');
+const newMembers = ref(0);
+const recycleCount = ref(0);
 
 const pendingTasks = ref([]);
 
@@ -126,8 +129,27 @@ const form = ref({
 });
 
 onMounted(() => {
+  fetchDashboardStats();
   fetchPendingTasks();
 });
+
+const fetchDashboardStats = async () => {
+  try {
+    const res = await uni.request({
+      url: 'http://localhost:3000/business/dashboard-stats',
+      method: 'GET'
+    });
+    if (res.data?.success) {
+      employeeName.value = res.data.data.employeeName;
+      storeName.value = res.data.data.storeName;
+      todaySales.value = res.data.data.todaySales;
+      newMembers.value = res.data.data.newMembers;
+      recycleCount.value = res.data.data.recycleCount;
+    }
+  } catch (e) {
+    console.error('获取基础数据失败', e);
+  }
+};
 
 const fetchPendingTasks = async () => {
   try {
@@ -190,10 +212,11 @@ const handleSubmitMemberAndOrder = async () => {
         method: 'POST',
         data: { customerId: resCustomer.data.data.id, quantity: 2 }
       });
-      alert('已成功开单并建入档案！稍后可访问 localhost:3000/trigger-scrm 让 AI 计算关怀的话术');
+      alert('已成功自动开单 (联动扣减库存/增加积分/计算销售额)并建入档案！稍后可访问 localhost:3000/trigger-scrm 触发AI任务');
       showAddModal.value = false;
       // 清空表单
       form.value = { nickname:'', phone:'', babyName:'', birthDate:'', allergyInfo:'无'};
+      fetchDashboardStats();
       fetchPendingTasks();
     }
   } catch (e) {
@@ -203,6 +226,10 @@ const handleSubmitMemberAndOrder = async () => {
 
 const goToCustomers = () => {
   uni.navigateTo({ url: '/pages/customers/index' });
+};
+
+const goToInventory = () => {
+  uni.navigateTo({ url: '/pages/inventory/index' });
 };
 </script>
 

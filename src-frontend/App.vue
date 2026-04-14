@@ -2,6 +2,7 @@
   <view class="app-wrapper">
     <Dashboard v-if="currentPath === '/pages/dashboard/index'" />
     <Customers v-if="currentPath === '/pages/customers/index'" />
+    <Inventory v-if="currentPath === '/pages/inventory/index'" />
   </view>
 </template>
 
@@ -9,6 +10,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import Dashboard from './pages/dashboard/index.vue';
 import Customers from './pages/customers/index.vue';
+import Inventory from './pages/inventory/index.vue';
 
 const currentPath = ref('/pages/dashboard/index');
 

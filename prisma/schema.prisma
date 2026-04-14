@@ -64,6 +64,7 @@ model Customer {
   points         Int       @default(0) // 常规消费积分
   recyclePoints  Int       @default(0) // 环保/罐爱计划专属积分
   memberLevel    Int       @default(1) // 会员等级
+  tags           String?   // 用户标签
   
   // 关联
   babyProfiles   BabyProfile[]

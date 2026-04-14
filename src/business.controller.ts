@@ -7,18 +7,20 @@ export class BusinessController {
 
   @Post('customer')
   async addCustomer(
-    @Body() data: { phone: string; nickname: string; babyName: string; birthDate: string; allergyInfo: string }
+    @Body() data: { phone: string; nickname: string; babyName: string; birthDate: string; allergyInfo: string; feedingType?: string }
   ) {
     const customer = await this.prisma.customer.create({
       data: {
         openId: `OPENID_APP_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
         phone: data.phone || `138${Math.floor(Math.random() * 100000000)}`,
         nickname: data.nickname,
+        tags: '新客,待跟进',
         babyProfiles: {
           create: {
             name: data.babyName,
             birthDate: new Date(data.birthDate),
             allergyInfo: data.allergyInfo,
+            feedingType: data.feedingType || '配方奶喂养',
           },
         },
       },
@@ -28,35 +30,115 @@ export class BusinessController {
   }
 
   @Post('order')
-  async createOrder(@Body() data: { customerId: string; quantity: number }) {
+  async createOrder(@Body() data: { customerId: string; quantity: number; productId?: string }) {
     const store = await this.prisma.store.findFirst();
-    const product = await this.prisma.product.findFirst();
+    let product = null;
+
+    if (data.productId) {
+      product = await this.prisma.product.findUnique({ where: { id: data.productId } });
+    } else {
+      product = await this.prisma.product.findFirst();
+    }
 
     if (!store || !product) {
       return { success: false, message: '系统缺少门店或测试产品数据，请重置数据库' };
     }
+
+    const price = 299.00; // 模拟单价
+    const totalAmount = price * (data.quantity || 1);
 
     const order = await this.prisma.order.create({
       data: {
         orderNo: 'ORD' + Date.now(),
         customerId: data.customerId,
         storeId: store.id,
-        totalAmount: 299.00 * (data.quantity || 1),
+        totalAmount,
         status: 'COMPLETED',
         deliveryType: 'PICKUP',
         items: {
-          create: [
-            {
-              productId: product.id,
-              quantity: data.quantity || 1,
-              price: 299.00,
-            },
-          ],
+          create: [{
+            productId: product.id,
+            quantity: data.quantity || 1,
+            price: price,
+          }],
         },
       },
     });
 
+    // 扣减库存 (找第一批未过期库存)
+    const inventory = await this.prisma.inventory.findFirst({
+      where: { storeId: store.id, productId: product.id, stock: { gte: data.quantity || 1 } },
+      orderBy: { expirationDate: 'asc' }
+    });
+    
+    if (inventory) {
+      await this.prisma.inventory.update({
+        where: { id: inventory.id },
+        data: { stock: { decrement: data.quantity || 1 } }
+      });
+    }
+
+    // 消费积分累计与会员等级提升
+    // 假设每消费1元得1积分，每满1000分升1级
+    const customer = await this.prisma.customer.findUnique({ where: { id: data.customerId } });
+    if (customer) {
+      const newPoints = customer.points + Math.floor(totalAmount);
+      const newLevel = Math.floor(newPoints / 1000) + 1;
+      
+      await this.prisma.customer.update({
+        where: { id: data.customerId },
+        data: { 
+          points: newPoints,
+          memberLevel: newLevel > customer.memberLevel ? newLevel : customer.memberLevel
+        }
+      });
+    }
+
     return { success: true, message: '开单成功', data: order };
+  }
+
+  @Get('dashboard-stats')
+  async getDashboardStats() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const store = await this.prisma.store.findFirst();
+    if (!store) return { success: false };
+
+    // 今日销售额
+    const todayOrders = await this.prisma.order.findMany({
+      where: { 
+        storeId: store.id,
+        createdAt: { gte: today }
+      }
+    });
+    const todaySales = todayOrders.reduce((sum, o) => sum + Number(o.totalAmount), 0);
+
+    // 新增会员
+    const newMembers = await this.prisma.customer.count({
+      where: {
+        createdAt: { gte: today }
+      }
+    });
+
+    // 回收空罐
+    const recycleRecords = await this.prisma.recycleRecord.count({
+      where: { 
+        storeId: store.id,
+        createdAt: { gte: today }
+      }
+    });
+
+    return {
+      success: true,
+      data: {
+        employeeName: '李芳',
+        storeName: store.name,
+        todaySales: todaySales.toFixed(2),
+        newMembers,
+        recycleCount: recycleRecords
+      }
+    };
   }
 
   @Get('customers')
@@ -64,6 +146,10 @@ export class BusinessController {
     return this.prisma.customer.findMany({
       include: {
         babyProfiles: true,
+        orders: {
+          include: { items: { include: { product: true } } },
+          orderBy: { createdAt: 'desc' },
+        },
         employeeTasks: {
           orderBy: { createdAt: 'desc' },
           take: 1
@@ -74,12 +160,16 @@ export class BusinessController {
   }
 
   @Put('customer/:id')
-  async updateCustomer(@Param('id') id: string, @Body() data: { nickname: string; phone: string; babyName: string; birthDate: string; allergyInfo: string }) {
+  async updateCustomer(@Param('id') id: string, @Body() data: { nickname: string; phone: string; tags: string; memberLevel: number; points: number; recyclePoints: number; babyName: string; birthDate: string; allergyInfo: string; feedingType: string }) {
     const customer = await this.prisma.customer.update({
       where: { id },
       data: {
         nickname: data.nickname,
         phone: data.phone,
+        tags: data.tags,
+        memberLevel: Number(data.memberLevel),
+        points: Number(data.points),
+        recyclePoints: Number(data.recyclePoints),
       },
       include: { babyProfiles: true }
     });
@@ -91,6 +181,7 @@ export class BusinessController {
           name: data.babyName,
           birthDate: new Date(data.birthDate),
           allergyInfo: data.allergyInfo,
+          feedingType: data.feedingType,
         }
       });
     } else {
@@ -99,7 +190,8 @@ export class BusinessController {
           customerId: id,
           name: data.babyName,
           birthDate: new Date(data.birthDate),
-          allergyInfo: data.allergyInfo
+          allergyInfo: data.allergyInfo,
+          feedingType: data.feedingType,
         }
       });
     }
@@ -133,5 +225,31 @@ export class BusinessController {
     } catch (e) {
       return { success: false, message: '删除失败: ' + String(e) };
     }
+  }
+
+  @Post('redeem')
+  async redeemPoints(@Body() data: { customerId: string; pointsToDeduct: number; pointType: 'points' | 'recyclePoints'; giftName: string }) {
+    const customer = await this.prisma.customer.findUnique({ where: { id: data.customerId } });
+    if (!customer) return { success: false, message: '顾客不存在' };
+
+    const deductAmount = Number(data.pointsToDeduct);
+    if (data.pointType === 'recyclePoints') {
+      if (customer.recyclePoints < deductAmount) return { success: false, message: '环保回收积分不足' };
+      await this.prisma.customer.update({
+        where: { id: data.customerId },
+        data: { recyclePoints: { decrement: deductAmount } }
+      });
+    } else {
+      if (customer.points < deductAmount) return { success: false, message: '消费积分不足' };
+      await this.prisma.customer.update({
+        where: { id: data.customerId },
+        data: { points: { decrement: deductAmount } }
+      });
+    }
+
+    return { 
+      success: true, 
+      message: `成功消耗 ${deductAmount} ${data.pointType === 'points' ? '消费' : '回收'}积分，已派发：${data.giftName}` 
+    };
   }
 }
