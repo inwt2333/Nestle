@@ -163,7 +163,7 @@ export class BusinessController {
     return {
       success: true,
       data: {
-        employeeName: '李芳',
+        employeeName: '仔细听',
         storeName: store.name,
         todaySales: todaySales.toFixed(2),
         newMembers,

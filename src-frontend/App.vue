@@ -46,6 +46,8 @@ body {
   padding: 0;
   background-color: #F5F7FA;
   -webkit-font-smoothing: antialiased;
+  font-family: system-ui, -apple-system, sans-serif;
+  line-height: 1.8;
 }
 view {
   display: block;
@@ -54,5 +56,47 @@ view {
 text {
   display: inline;
   box-sizing: border-box;
+  line-height: 1.8;
 }
+input, textarea, button {
+  font-family: inherit;
+  box-sizing: border-box;
+}
+.btn, button {
+  padding: 12px 24px !important;
+}
+.input, input, textarea {
+  padding: 14px 22px !important;
+}
+
+
+/* ========================================= */
+/*       全局注入：增大卡片/控件与边缘的距离     */
+/* ========================================= */
+
+.card, .customer-card, .article-card, .assess-card, .dashboard-card {
+  margin-bottom: 27px !important;
+  padding: 32px !important;
+  border-radius: 11px !important;
+}
+
+.customers-container, .dashboard-container, .inventory-container, .training-container, .admin-container, .content {
+  padding: 40px 32px 54px 32px !important;
+}
+
+.input, input, textarea, .f-input, select, .custom-select, .input-line {
+  margin-bottom: 24px !important;
+  padding: 19px 27px !important;
+  border-radius: 11px !important;
+}
+
+.f-row {
+  margin-bottom: 27px !important;
+}
+
+.action-bar, .actions, .sub-tabs, .tabs {
+  margin-bottom: 32px !important;
+}
+
 </style>
+

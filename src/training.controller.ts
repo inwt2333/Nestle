@@ -83,7 +83,7 @@ export class TrainingController {
         await this.prisma.employee.create({
           data: {
             storeId: store.id,
-            name: '李芳',
+            name: '仔细听',
             phone: '13811112222',
             role: 'MANAGER'
           }

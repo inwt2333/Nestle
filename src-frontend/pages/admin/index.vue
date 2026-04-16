@@ -19,18 +19,17 @@
         <view class="list">
           <view class="card" v-for="e in employees" :key="e.id">
             <view v-if="!e.isEditing" style="width:100%; display:flex; justify-content:space-between; align-items:center;">
-              <view>
+              <view style="display:flex; flex-direction:column; gap:6px;">
                 <text>姓名: {{ e.name }}</text>
-                <text> 岗位: {{ e.role }}</text>
-                <text> 手机: {{ e.phone }}</text>
+                <text>岗位: {{ e.role }}</text>
+                <text>手机: {{ e.phone }}</text>
               </view>
               <view>
-                <text>可用积分: {{ e.points }}</text>
                 <button class="add-btn" style="margin-left:10px" @click="editEmployee(e)">编辑</button>
                 <button class="del-btn" style="margin-left:10px" @click="delEmployee(e.id)">删除</button>
               </view>
             </view>
-            <view v-else style="width:100%; display:flex; flex-direction:column; gap:10px;">
+            <view v-else style="width:100%; display:flex; flex-direction:column; gap: 24px;">
               <input class="input-line" v-model="e.editData.name" placeholder="姓名" />
               <input class="input-line" v-model="e.editData.phone" placeholder="手机" />
               <select class="input-line" v-model="e.editData.role">
@@ -123,7 +122,7 @@
                </view>
              </view>
              <!-- Edit Mode -->
-             <view v-else style="width:100%; display:flex; flex-direction:column; gap:10px;">
+             <view v-else style="width:100%; display:flex; flex-direction:column; gap: 24px;">
                 <input class="input-line" v-model="k.editData.title" placeholder="标题" />
                 <select class="input-line" v-model="k.editData.category">
                   <option value="PRODUCT">产品知识</option>
@@ -256,22 +255,227 @@ const delKnowledge = async(id) => {
 </script>
 
 <style scoped>
-.admin-container { padding: 20px; font-family: sans-serif; background: #fff; min-height: 100vh;}
-.nav-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.logo-text { font-size: 20px; font-weight: bold; }
-.back-btn { padding: 5px 15px; border-radius: 20px; background: #eee; border: none; cursor: pointer; }
-.tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-.tab { padding: 8px 16px; border: none; border-radius: 6px; background: #f3f4f6; cursor: pointer; }
-.tab.active { background: #3b82f6; color: white; }
-.content .title { font-size: 18px; font-weight: bold; margin-bottom: 15px; display: block; padding-top: 10px;}
-.form-box { background: #f9fafb; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; }
-.list { display: flex; flex-direction: column; gap: 10px; }
-.card { background: #f9fafb; border:1px solid #eee; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: flex-start; }
-.flex-box { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
-.input-line { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; flex: 1; min-width: 150px; background: white;}
-.textarea-box { padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; flex: 1; min-height: 80px; background: white;}
-.add-btn { background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; }
-.del-btn { background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-.small { font-size: 12px; color: #666; margin-left: 10px;}
-.k-title { font-weight: 500; width: 100%;}
+.admin-container {
+  padding: 30px 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f4f7fe;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.nav-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  background: #ffffff;
+  padding: 15px 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.logo-box {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.logo-text {
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+.back-btn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: #e2e8f0;
+}
+
+.tabs {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 25px;
+  flex-wrap: wrap;
+}
+
+.tab {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #64748b;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+}
+
+.tab.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+}
+
+.content {
+  background: transparent;
+}
+
+.content .title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 24px;
+  display: block;
+}
+
+.form-box {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  margin-bottom: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0,0,0,0.02);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+}
+
+.card.flex {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-box {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.input-line {
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  flex: 1;
+  min-width: 180px;
+  background: #f8fafc;
+  font-size: 14px;
+  color: #334155;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.input-line:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.textarea-box {
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  flex: 1;
+  min-height: 100px;
+  background: #f8fafc;
+  font-family: inherit;
+  font-size: 14px;
+  color: #334155;
+  resize: vertical;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.textarea-box:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.add-btn {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+  transition: all 0.2s;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.add-btn:active {
+  transform: scale(0.96);
+}
+
+.del-btn {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+  transition: all 0.2s;
+}
+
+.del-btn:active {
+  transform: scale(0.96);
+}
+
+.small {
+  font-size: 13px;
+  color: #64748b;
+  margin-top: 5px;
+  display: block;
+}
+
+.k-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: #1e293b;
+  width: 100%;
+}
 </style>

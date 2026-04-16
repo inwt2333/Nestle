@@ -96,7 +96,7 @@ ${this.knowledgeBaseContent}
         aiPrompt += `\n【你的任务】: 请结合知识库中符合当前宝宝月龄和体质(尤其是过敏史)的产品，给出一段温馨的关怀提醒。`;
       }
 
-      aiPrompt += `\n【要求】: 语气像真实的热情店员"李芳"，亲切自然，不要生硬。回复的文案控制在 60 字以内，带上适合微信发送的表情符号 Emoji。`;
+      aiPrompt += `\n【要求】: 语气像真实的热情店员"仔细听"，亲切自然，不要生硬。回复的文案控制在 60 字以内，带上适合微信发送的表情符号 Emoji。`;
 
       try {
         const generatedSpeech = await this.aiService.generateText(aiPrompt);

@@ -9,8 +9,8 @@ async function main() {
   // 1. 创建门店
   const store = await prisma.store.create({
     data: {
-      name: '育婴坊（向阳路店）',
-      address: 'XX市XX区向阳路98号',
+      name: '雀巢体验店（海珠店）',
+      address: '广州市海珠区新港西路135号',
       longitude: 114.123,
       latitude: 22.456,
     },
@@ -20,7 +20,7 @@ async function main() {
   const employee = await prisma.employee.create({
     data: {
       storeId: store.id,
-      name: '李芳(金牌店员)',
+      name: '仔细听',
       phone: '13800138000',
     },
   });

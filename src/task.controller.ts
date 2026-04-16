@@ -7,9 +7,9 @@ export class TaskController {
 
   @Get()
   async getPendingTasks() {
-    // 模拟 B端店员登录态：假设当前调用者是“李芳(金牌店员)”
+    // 模拟 B端店员登录态：假设当前调用者是“仔细听”
     const employee = await this.prisma.employee.findFirst({
-      where: { name: '李芳(金牌店员)' },
+      where: { name: '仔细听' },
     });
 
     if (!employee) return [];
