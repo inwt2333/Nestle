@@ -110,8 +110,8 @@ const scanQR = () => {
   border-radius: 16px;
   overflow: hidden;
   margin-bottom: 32px;
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-  box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3);
+  background: #C789F5;
+  box-shadow: 0 8px 24px rgba(214, 193, 248, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -153,7 +153,7 @@ const scanQR = () => {
 }
 .donate-subtitle {
   font-size: 18px;
-  color: #10b981;
+  color: #C789F5;
   font-weight: 600;
   margin-top: 8px;
   margin-bottom: 24px;
@@ -168,7 +168,7 @@ const scanQR = () => {
 }
 .bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+  background: linear-gradient(90deg, #D6C1F8 0%, #C789F5 100%);
   transition: width 0.4s ease;
 }
 .donate-hint {
@@ -196,7 +196,7 @@ const scanQR = () => {
   border: 1px solid #f1f5f9;
 }
 .scan-btn {
-  background: #10b981;
+  background: #C789F5;
   color: white;
   font-size: 18px;
   font-weight: 800;
@@ -207,7 +207,7 @@ const scanQR = () => {
   margin-bottom: 24px;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 4px 10px rgba(199, 137, 245, 0.2);
 }
 .sub-actions {
   display: flex;

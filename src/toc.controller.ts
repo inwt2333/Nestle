@@ -100,9 +100,10 @@ export class TocController {
   @Get('recycle/progress')
   async getRecycleProgress() {
     // 每回收 10,000 罐，向山区捐赠 100 罐
-    const totalRecycled = await this.prisma.recycleRecord.count({
+    const dbCount = await this.prisma.recycleRecord.count({
       where: { status: 'COMPLETED' }
     });
+    const totalRecycled = 5204 + dbCount;
     const donatedCans = Math.floor(totalRecycled / 10000) * 100;
     const progressToNextDonate = totalRecycled % 10000;
     
