@@ -72,6 +72,8 @@ model Customer {
   orders         Order[]
   recycleRecords RecycleRecord[]
   employeeTasks  EmployeeTask[]
+  addresses      Address[]
+  coupons        Coupon[]
 
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -256,4 +258,58 @@ model GiftItem {
   
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
+}
+
+// ==========================================
+// 9. C端专属域 (商城, 活动, 课程, 地址等)
+// ==========================================
+
+model Address {
+  id         String   @id @default(uuid())
+  customerId String
+  name       String
+  phone      String
+  province   String
+  city       String
+  district   String
+  detail     String
+  isDefault  Boolean  @default(false)
+  customer   Customer @relation(fields: [customerId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Activity {
+  id         String   @id @default(uuid())
+  title      String
+  coverUrl   String?
+  content    String
+  status     Int      @default(1) // 1=active, 0=ended
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Coupon {
+  id          String   @id @default(uuid())
+  customerId  String
+  name        String
+  discount    Float    // 折扣额度
+  minAmount   Float    // 门槛
+  status      String   @default("UNUSED") // UNUSED, USED, EXPIRED
+  validUntil  DateTime
+  customer    Customer @relation(fields: [customerId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Course {
+  id          String   @id @default(uuid())
+  title       String
+  expertName  String
+  videoUrl    String
+  coverUrl    String?
+  content     String
+  category    String   // NEWBORN, TODDLER, etc
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

@@ -15,6 +15,34 @@
                 {
                         "path": "pages/training/index",
                         "style": { "navigationBarTitleText": "店长与店员培训", "navigationStyle": "custom" }
+                },
+                {
+                        "path": "pages/toc/home/index",
+                        "style": { "navigationBarTitleText": "雀巢消费者中心" }
+                },
+                {
+                        "path": "pages/toc/mall/index",
+                        "style": { "navigationBarTitleText": "官方商城" }
+                },
+                {
+                        "path": "pages/toc/activity/index",
+                        "style": { "navigationBarTitleText": "最新活动" }
+                },
+                {
+                        "path": "pages/toc/traceability/index",
+                        "style": { "navigationBarTitleText": "产品溯源" }
+                },
+                {
+                        "path": "pages/toc/recycle/index",
+                        "style": { "navigationBarTitleText": "罐爱计划", "navigationStyle": "custom" }
+                },
+                {
+                        "path": "pages/toc/member/index",
+                        "style": { "navigationBarTitleText": "会员权益" }
+                },
+                {
+                        "path": "pages/toc/classroom/index",
+                        "style": { "navigationBarTitleText": "家长课堂" }
                 }
         ],
         "globalStyle": {

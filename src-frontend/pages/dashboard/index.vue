@@ -7,6 +7,7 @@
         <button class="nav-btn" @click="goToInventory">📦 仓储与补货</button>
         <button class="nav-btn" @click="goToTraining">🎓 店员培训</button>
         <button class="nav-btn" @click="goToAdmin">⚙️ 管理后台</button>
+        <button class="nav-btn" @click="goToToC" style="color: #4CAF50; font-weight: bold;">📱 消费者端体验</button>
       </view>
     </view>
     
@@ -319,6 +320,9 @@ const goToInventory = () => {
 const goToAdmin = () => { uni.navigateTo({ url: '/pages/admin/index' }); };
 const goToTraining = () => {
   uni.navigateTo({ url: '/pages/training/index' });
+};
+const goToToC = () => {
+  uni.navigateTo({ url: '/pages/toc/home/index' });
 };
 </script>
 

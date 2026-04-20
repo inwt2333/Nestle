@@ -5,6 +5,13 @@
     <Inventory v-if="currentPath === '/pages/inventory/index'" />
     <Training v-if="currentPath === '/pages/training/index'" />
     <Admin v-if="currentPath === '/pages/admin/index'" />
+    <TocHome v-if="currentPath === '/pages/toc/home/index'" />
+    <TocMall v-if="currentPath === '/pages/toc/mall/index'" />
+    <TocActivity v-if="currentPath === '/pages/toc/activity/index'" />
+    <TocTraceability v-if="currentPath === '/pages/toc/traceability/index'" />
+    <TocRecycle v-if="currentPath === '/pages/toc/recycle/index'" />
+    <TocMember v-if="currentPath === '/pages/toc/member/index'" />
+    <TocClassroom v-if="currentPath === '/pages/toc/classroom/index'" />
   </view>
 </template>
 
@@ -15,11 +22,20 @@ import Customers from './pages/customers/index.vue';
 import Inventory from './pages/inventory/index.vue';
 import Training from './pages/training/index.vue';
 import Admin from './pages/admin/index.vue';
+import TocHome from './pages/toc/home/index.vue';
+import TocMall from './pages/toc/mall/index.vue';
+import TocActivity from './pages/toc/activity/index.vue';
+import TocTraceability from './pages/toc/traceability/index.vue';
+import TocRecycle from './pages/toc/recycle/index.vue';
+import TocMember from './pages/toc/member/index.vue';
+import TocClassroom from './pages/toc/classroom/index.vue';
 
 const currentPath = ref('/pages/dashboard/index');
+const routeHistory = ref(['/pages/dashboard/index']);
 
 const handleRouteChange = (e) => {
   currentPath.value = e.detail;
+  routeHistory.value.push(e.detail);
 };
 
 onMounted(() => {
@@ -28,9 +44,15 @@ onMounted(() => {
   // 注入到uni全局以供调用
   window.uni.navigateTo = ({ url }) => {
     currentPath.value = url;
+    routeHistory.value.push(url);
   };
   window.uni.navigateBack = () => {
-    currentPath.value = '/pages/dashboard/index';
+    if (routeHistory.value.length > 1) {
+      routeHistory.value.pop();
+      currentPath.value = routeHistory.value[routeHistory.value.length - 1];
+    } else {
+      currentPath.value = '/pages/dashboard/index';
+    }
   };
 });
 
