@@ -7,7 +7,7 @@ export default defineConfig({
     vue({
       template: {
         compilerOptions: {
-          isCustomElement: (tag) => ['view', 'text'].includes(tag),
+          isCustomElement: (tag) => ['view', 'text', 'image', 'scroll-view'].includes(tag),
         },
       },
     }),

@@ -3,10 +3,6 @@
     <view class="nav-bar">
       <view class="logo-box">🍼 <text class="logo-text">雀掌柜</text></view>
       <view class="nav-actions">
-        <button class="nav-btn" @click="goToCustomers">👥 客情中心</button>
-        <button class="nav-btn" @click="goToInventory">📦 仓储与补货</button>
-        <button class="nav-btn" @click="goToTraining">🎓 店员培训</button>
-        <button class="nav-btn" @click="goToAdmin">⚙️ 管理后台</button>
         <button class="nav-btn" @click="goToToC" style="color: #4CAF50; font-weight: bold;">📱 消费者端体验</button>
       </view>
     </view>
@@ -41,6 +37,30 @@
         <text class="icon">➕</text>
         <text class="btn-text">录客开单</text>
       </button>
+    </view>
+
+    <!-- 核心功能卡片区 -->
+    <view class="function-grid">
+      <view class="func-card" @click="goToCustomers">
+        <view class="icon-wrap bg-indigo">👥</view>
+        <text class="func-title">客情中心</text>
+        <text class="func-desc">会员档案与行为分析</text>
+      </view>
+      <view class="func-card" @click="goToInventory">
+        <view class="icon-wrap bg-orange">📦</view>
+        <text class="func-title">仓储与补货</text>
+        <text class="func-desc">智能盘点与入库预测</text>
+      </view>
+      <view class="func-card" @click="goToTraining">
+        <view class="icon-wrap bg-teal">🎓</view>
+        <text class="func-title">店员培训</text>
+        <text class="func-desc">学习产品知识与考核</text>
+      </view>
+      <view class="func-card" @click="goToAdmin">
+        <view class="icon-wrap bg-slate">⚙️</view>
+        <text class="func-title">管理后台</text>
+        <text class="func-desc">参数配置与人员商品</text>
+      </view>
     </view>
 
     <!-- 空罐回收弹窗 -->
@@ -342,19 +362,28 @@ const goToToC = () => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 27px;
+  gap: 20px;
 }
 
 .logo-box {
   font-size: 24px;
   font-weight: 900;
   color: #0f172a;
+  white-space: nowrap;
 }
 
 .nav-actions {
   display: flex;
-  gap: 27px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  padding-bottom: 4px;
+}
+.nav-actions::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 
 .nav-btn {
@@ -368,6 +397,15 @@ const goToToC = () => {
   box-shadow: 0 4px 12px rgba(0,0,0,0.03);
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .nav-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }
 
 .nav-btn:hover {
@@ -453,6 +491,64 @@ const goToToC = () => {
 .add-bg { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: #ffffff; }
 .add-bg .icon { color: #ffffff; font-size: 38px; margin-bottom: 8px; display: block; }
 .add-bg .btn-text { font-weight: 700; font-size: 19px; }
+
+/* 功能网格区 */
+.function-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 27px;
+}
+
+.func-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  border: 1px solid rgba(0,0,0,0.03);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.func-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+}
+
+.func-card:active { transform: scale(0.96); }
+
+.icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+.bg-indigo { background: #e0e7ff; color: #4338ca; }
+.bg-orange { background: #ffedd5; color: #c2410c; }
+.bg-teal { background: #ccfbf1; color: #0f766e; }
+.bg-slate { background: #f1f5f9; color: #334155; }
+
+.func-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.func-desc {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+  line-height: 1.4;
+}
 
 .section {
   background: #ffffff;
@@ -562,9 +658,9 @@ const goToToC = () => {
 .modal-box {
   background: #ffffff;
   width: 90%;
-  max-width: 400px;
-  border-radius: 16px;
-  padding: 27px;
+  max-width: 320px;
+  border-radius: 12px;
+  padding: 16px;
   box-sizing: border-box;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
   animation: slideUp 0.3s ease-out forwards;
@@ -573,13 +669,13 @@ const goToToC = () => {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 27px; padding-bottom: 14px; border-bottom: 1px solid #e2e8f0; }
-.modal-title { font-size: 23px; font-weight: 800; color: #0f172a; }
-.close-btn { font-size: 27px; color: #94a3b8; cursor: pointer; }
-.form-item { margin-bottom: 27px; }
-.form-label { font-size: 18px; color: #475569; font-weight: 700; margin-bottom: 8px; display: block; }
-.form-input { width: 100%; padding: 27px; font-size: 19px; box-sizing: border-box; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; transition: border 0.3s; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #e2e8f0; }
+.modal-title { font-size: 16px; font-weight: 800; color: #0f172a; }
+.close-btn { font-size: 20px; color: #94a3b8; cursor: pointer; }
+.form-item { margin-bottom: 12px; }
+.form-label { font-size: 13px; color: #475569; font-weight: 700; margin-bottom: 6px; display: block; }
+.form-input { width: 100%; padding: 10px 12px; font-size: 14px; box-sizing: border-box; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; transition: border 0.3s; }
 .form-input:focus { border-color: #3b82f6; outline: none; background: #FFF; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
-.submit-btn { width: 100%; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: #FFF; font-size: 20px; font-weight: 800; padding: 27px; border-radius: 10px; border: none; margin-top: 20px; box-shadow: 0 4px 15px rgba(37,99,235,0.25); cursor: pointer; transition: transform 0.2s; }
+.submit-btn { width: 100%; background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: #FFF; font-size: 15px; font-weight: 800; padding: 12px; border-radius: 8px; border: none; margin-top: 16px; box-shadow: 0 4px 15px rgba(37,99,235,0.25); cursor: pointer; transition: transform 0.2s; }
 .submit-btn:active { transform: scale(0.96); }
 </style>

@@ -17,12 +17,12 @@
       <!-- 商品列表 -->
       <view v-if="currentTab === 'products'" class="product-list">
         <view class="product-card" v-for="p in products" :key="p.id">
-          <image src="https://img.yzcdn.cn/vant/ipad.jpeg" class="cover"></image>
+          <img :src="p.imageUrl || 'https://img.yzcdn.cn/vant/ipad.jpeg'" class="cover" />
           <view class="info">
             <text class="name">{{ p.name }}</text>
-            <text class="price">￥{{ p.price }}<text class="stock">库存: {{ p.stock || 0 }} 件</text></text>
-            <view class="buy-row">
-               <button class="buy-btn">立即兑换购买</button>
+            <view class="price-stock">
+              <text class="price">￥{{ p.price }}</text>
+              <text class="stock">库存 {{ p.stock || 0 }}</text>
             </view>
           </view>
         </view>
@@ -188,61 +188,61 @@ const addDemoAddress = async () => {
 }
 
 /* Products */
+.product-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
 .product-card {
   display: flex;
+  flex-direction: column;
   background: #fff;
   border-radius: 12px;
-  margin-bottom: 24px;
-  padding: 24px;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+  padding: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
   border: 1px solid #f1f5f9;
 }
 .product-card .cover {
-  width: 140px;
-  height: 140px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  height: auto;
   border-radius: 8px;
-  margin-right: 24px;
+  margin-bottom: 12px;
+  object-fit: cover;
   border: 1px solid #e2e8f0;
 }
 .product-card .info {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  flex: 1;
 }
 .info .name {
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 800;
-  color: #1e293b;
+  color: #000000;
   line-height: 1.4;
+  margin-bottom: 8px;
+  flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.info .price-stock {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: auto;
 }
 .info .price {
   color: #ef4444;
-  font-size: 26px;
+  font-size: 20px;
   font-weight: 800;
-  margin-top: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 .info .stock {
   color: #64748b;
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 500;
-}
-.buy-row {
-  display: flex;
-  justify-content: flex-end;
-}
-.buy-btn {
-  background: #1C75FF;
-  color: white;
-  font-size: 15px;
-  font-weight: 700;
-  padding: 10px 24px;
-  border-radius: 20px;
-  border: none;
-  cursor: pointer;
 }
 
 /* Orders */

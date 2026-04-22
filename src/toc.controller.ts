@@ -8,29 +8,23 @@ export class TocController {
   // 1. 官方商城功能
   @Get('products')
   async getMallProducts() {
-    const list = await this.prisma.inventory.findMany({
-      include: { product: true },
-      where: { stock: { gt: 0 } }
+    const products = await this.prisma.product.findMany({
+      include: { inventories: true }
     });
     
-    const productMap = new Map();
-    list.forEach(inv => {
-      const p = inv.product;
-      if (!productMap.has(p.id)) {
-        productMap.set(p.id, {
-          id: p.id,
-          skuCode: p.skuCode,
-          name: p.name,
-          category: p.category,
-          price: p.price,
-          shelfLifeDays: p.shelfLifeDays,
-          stock: 0,
-        });
-      }
-      productMap.get(p.id).stock += inv.stock;
+    return products.map(p => {
+      const totalStock = p.inventories.reduce((sum, inv) => sum + inv.stock, 0);
+      return {
+        id: p.id,
+        skuCode: p.skuCode,
+        name: p.name,
+        category: p.category,
+        price: p.price,
+        shelfLifeDays: p.shelfLifeDays,
+        imageUrl: p.imageUrl,
+        stock: totalStock,
+      };
     });
-
-    return Array.from(productMap.values());
   }
 
   @Get('customer/:id/addresses')

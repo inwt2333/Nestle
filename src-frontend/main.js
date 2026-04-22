@@ -35,6 +35,12 @@ window.uni = {
   },
   navigateBack: () => {
     window.dispatchEvent(new CustomEvent('app-route', { detail: '/pages/dashboard/index' }));
+  },
+  getStorageSync: (key) => {
+    return localStorage.getItem(key);
+  },
+  setStorageSync: (key, value) => {
+    localStorage.setItem(key, value);
   }
 };
 

@@ -65,11 +65,17 @@
           <input class="input-line" v-model="prodForm.category" placeholder="分类 (如:奶粉)" />
           <input class="input-line" type="number" v-model="prodForm.price" placeholder="价格" />
           <input class="input-line" type="number" v-model="prodForm.shelfLifeDays" placeholder="保质期(天)" />
+          <view class="file-box" style="width: 100%; border: 1px dashed #cbd5e1; padding: 12px; border-radius: 8px; display: flex; align-items: center; background: #fff;">
+            <text style="margin-right:12px;color:#64748b;">选择本地商品图片：</text>
+            <input type="file" accept="image/*" @change="onImageSelected" />
+            <img v-if="prodForm.imageUrl" :src="prodForm.imageUrl" style="width: 40px; height: 40px; margin-left: 10px; border-radius: 4px; object-fit: cover; vertical-align: middle;" />
+          </view>
           <button class="add-btn" @click="addProduct">录入商品</button>
         </view>
         <view class="list">
           <view class="card" v-for="p in products" :key="p.id">
-            <text>名称: {{ p.name }} | 类别: {{ p.category }} | 价格: ¥{{ p.price }} | 保质期: {{ p.shelfLifeDays }}天 | SKU: {{ p.skuCode }}</text>
+            <img v-if="p.imageUrl" :src="p.imageUrl" style="width: 50px; height: 50px; border-radius: 4px; margin-right: 12px; object-fit: cover;" />
+            <text style="flex:1;">名称: {{ p.name }} | 类别: {{ p.category }} | 价格: ¥{{ p.price }} | 保质期: {{ p.shelfLifeDays }}天 | SKU: {{ p.skuCode }}</text>
             <button class="del-btn" @click="delProduct(p.id)">删除</button>
           </view>
         </view>
@@ -153,9 +159,19 @@ const gifts = ref([]);
 const knowledgeList = ref([]);
 
 const empForm = ref({ name:'', phone:'', role:'CLERK' });
-const prodForm = ref({ name:'', category:'', price:'', shelfLifeDays: '' });
+const prodForm = ref({ name:'', category:'', price:'', shelfLifeDays: '', imageUrl: '' });
 const giftForm = ref({ name:'', pointsRequired:'', stock:'', redeemType:'CONSUMER' });
 const kForm = ref({ title:'', category:'PRODUCT', content:'' });
+
+const onImageSelected = (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    prodForm.value.imageUrl = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+};
 
 const editEmployee = (e) => {
   e.editData = { ...e };
@@ -215,10 +231,11 @@ const addProduct = async() => {
     name: prodForm.value.name,
     category: prodForm.value.category,
     price: Number(prodForm.value.price) || 0,
-    shelfLifeDays: Number(prodForm.value.shelfLifeDays) || 365
+    shelfLifeDays: Number(prodForm.value.shelfLifeDays) || 365,
+    imageUrl: prodForm.value.imageUrl
   }});
   if (res.statusCode && res.statusCode >= 400) { alert('录入失败，请确认所有字段格式'); }
-  else { prodForm.value = { name:'', category:'', price:'', shelfLifeDays: '' }; }
+  else { prodForm.value = { name:'', category:'', price:'', shelfLifeDays: '', imageUrl: '' }; }
   fetchList('products', products);
 }
 const delProduct = async(id) => {

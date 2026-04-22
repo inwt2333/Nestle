@@ -104,6 +104,7 @@ model Product {
   category       String    // 分类
   price          Float     @default(0) // 价格
   shelfLifeDays  Int       // 保质期标准(天)，用于临期计算
+  imageUrl       String?   // 商品展示图片
   traceability   Json?     // 溯源基础信息
   
   inventories    Inventory[]

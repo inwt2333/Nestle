@@ -1,0 +1,74 @@
+--- src-frontend/pages/toc/home/index.vue
++++ src-frontend/pages/toc/home/index.vue
+@@ -10,34 +10,27 @@
+       </view>
+     </view>
+ 
+-    <view class="header-card">
+-      <view class="member-header" @click="goTo('/pages/toc/member/index')">
++    <view class="user-header" @click="goTo('/pages/toc/member/index')">
++      <view class="user-left">
+         <image class="avatar" src="https://img.yzcdn.cn/vant/cat.jpeg" />
+         <view class="info">
+           <text class="nickname">{{ memberInfo.nickname || '登录' }}</text>
+-          <text class="level">会员等级: {{ memberInfo.memberLevel || 1 }}</text>
++          <text class="level">Lv.{{ memberInfo.memberLevel || 1 }} 会员</text>
+         </view>
+-        <view class="points">可用积分: <text class="pt-num">{{ memberInfo.points || 0 }}</text></view>
+       </view>
++      <view class="points-container">
++        <text class="points-label">可用积分</text>
++        <text class="pt-num">{{ memberInfo.points || 0 }}</text>
++      </view>
+     </view>
+ 
++    <view class="divider"></view>
++
+     <!-- 核心功能模块 -->
+     <view class="modules-grid">
+       <view class="module-card touchable" @click="goTo('/pages/toc/mall/index')">
+         <text class="icon">🛒</text>
+         <text class="title">官方商城</text>
+         <text class="desc">积分好礼不断</text>
+-      </view>
+-      <view class="module-card touchable" @click="goTo('/pages/toc/activity/index')">
+-        <text class="icon">🎉</text>
+-        <text class="title">最新活动</text>
+-        <text class="desc">福利抢先知</text>
+       </view>
+       <view class="module-card touchable" @click="goTo('/pages/toc/traceability/index')">
+         <text class="icon">🔍</text>
+@@ -45,11 +38,6 @@
+         <text class="desc">透明看得见</text>
+       </view>
+-      <view class="module-card highlight touchable" @click="goTo('/pages/toc/recycle/index')">
+-        <text class="icon">♻️</text>
+-        <text class="title">罐爱计划</text>
+-        <text class="desc">扫码回收做公益</text>
+-      </view>
+       <view class="module-card touchable" @click="goTo('/pages/toc/member/index')">
+         <text class="icon">💎</text>
+         <text class="title">会员权益</text>
+@@ -59,6 +47,20 @@
+         <text class="icon">👶</text>
+         <text class="title">家长课堂</text>
+         <text class="desc">新生儿护理指南</text>
++      </view>
++      <view class="module-card highlight touchable full-width" @click="goTo('/pages/toc/recycle/index')">
++        <view class="full-content">
++          <text class="icon">♻️</text>
++          <view class="full-text">
++            <text class="title">罐爱计划</text>
++            <text class="desc">扫码回收做公益</text>
++          </view>
++        </view>
+       </view>
+     </view>
++
++    <!-- 公告区域 -->
++    <view class="announcement">
++      <text class="announce-icon">📢</text>
++      <text class="announce-text">最新消息：雀巢“优护双全”系列全新升级，会员购买享双倍积分！</text>
++    </view>
+   </view>
+ </template>

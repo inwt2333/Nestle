@@ -31,7 +31,10 @@ export class AdminController {
   }
 
   @Delete('employee/:id')
-  deleteEmployee(@Param('id') id: string) {
+  async deleteEmployee(@Param('id') id: string) {
+    await this.prisma.recycleRecord.deleteMany({ where: { employeeId: id } });
+    await this.prisma.employeeTask.deleteMany({ where: { employeeId: id } });
+    await this.prisma.assessment.deleteMany({ where: { employeeId: id } });
     return this.prisma.employee.delete({ where: { id } });
   }
 
@@ -40,7 +43,7 @@ export class AdminController {
   getProducts() { return this.prisma.product.findMany(); }
 
   @Post('product')
-  createProduct(@Body() data: { name: string; category: string; price: number; shelfLifeDays: number }) {
+  createProduct(@Body() data: { name: string; category: string; price: number; shelfLifeDays: number; imageUrl?: string }) {
     const dummySku = `SKU${Date.now()}`;
     return this.prisma.product.create({ 
       data: { 
@@ -48,7 +51,8 @@ export class AdminController {
         category: data.category, 
         price: data.price,
         skuCode: dummySku, 
-        shelfLifeDays: data.shelfLifeDays || 365 
+        shelfLifeDays: data.shelfLifeDays || 365,
+        imageUrl: data.imageUrl
       } 
     });
   }
@@ -59,7 +63,9 @@ export class AdminController {
   }
 
   @Delete('product/:id')
-  deleteProduct(@Param('id') id: string) {
+  async deleteProduct(@Param('id') id: string) {
+    await this.prisma.inventory.deleteMany({ where: { productId: id } });
+    await this.prisma.orderItem.deleteMany({ where: { productId: id } });
     return this.prisma.product.delete({ where: { id } });
   }
 

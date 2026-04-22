@@ -7,16 +7,21 @@
       </view>
     </view>
 
-    <view class="header-card">
-      <view class="member-header" @click="goTo('/pages/toc/member/index')">
-        <image class="avatar" src="https://img.yzcdn.cn/vant/cat.jpeg" />
+    <view class="user-header" @click="goTo('/pages/toc/member/index')">
+      <view class="user-left">
+        <img class="avatar" src="https://img.yzcdn.cn/vant/cat.jpeg" />
         <view class="info">
           <text class="nickname">{{ memberInfo.nickname || '登录' }}</text>
-          <text class="level">会员等级: {{ memberInfo.memberLevel || 1 }}</text>
+          <text class="level">Lv.{{ memberInfo.memberLevel || 1 }} 会员</text>
         </view>
-        <view class="points">可用积分: <text class="pt-num">{{ memberInfo.points || 0 }}</text></view>
+      </view>
+      <view class="points-container">
+        <text class="points-label">可用积分</text>
+        <text class="pt-num">{{ memberInfo.points || 0 }}</text>
       </view>
     </view>
+
+    <view class="divider"></view>
 
     <!-- 核心功能模块 -->
     <view class="modules-grid">
@@ -25,20 +30,10 @@
         <text class="title">官方商城</text>
         <text class="desc">积分好礼不断</text>
       </view>
-      <view class="module-card touchable" @click="goTo('/pages/toc/activity/index')">
-        <text class="icon">🎉</text>
-        <text class="title">最新活动</text>
-        <text class="desc">福利抢先知</text>
-      </view>
       <view class="module-card touchable" @click="goTo('/pages/toc/traceability/index')">
         <text class="icon">🔍</text>
         <text class="title">产品溯源</text>
         <text class="desc">透明看得见</text>
-      </view>
-      <view class="module-card highlight touchable" @click="goTo('/pages/toc/recycle/index')">
-        <text class="icon">♻️</text>
-        <text class="title">罐爱计划</text>
-        <text class="desc">扫码回收做公益</text>
       </view>
       <view class="module-card touchable" @click="goTo('/pages/toc/member/index')">
         <text class="icon">💎</text>
@@ -46,16 +41,36 @@
         <text class="desc">尊享关怀</text>
       </view>
       <view class="module-card touchable" @click="goTo('/pages/toc/classroom/index')">
-        <text class="icon">👶</text>
+        <text class="icon">🧑‍🏫</text>
         <text class="title">家长课堂</text>
-        <text class="desc">新生儿护理指南</text>
+        <text class="desc">新生儿护理和产后恢复</text>
       </view>
+      
+      <!-- 罐爱计划拉长 -->
+      <view class="module-card highlight touchable full-width" @click="goTo('/pages/toc/recycle/index')">
+        <view class="full-content">
+          <text class="icon">♻️</text>
+          <view class="full-text">
+            <text class="title">罐爱计划</text>
+            <text class="desc">线上扫码回收，守护地球做公益</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 公告区域(图片形式) -->
+    <view class="notice-images">
+      <text class="section-title">🎉最新活动</text>
+      <img class="notice-img" :src="notice1" />
+      <img class="notice-img" :src="notice2" />
     </view>
   </view>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import notice1 from '../../../../image/notice_1.jpg';
+import notice2 from '../../../../image/notice_2.jpg';
 
 const memberInfo = ref({});
 
@@ -121,54 +136,72 @@ const goBack = () => {
   color: #1e293b;
 }
 
-.header-card {
-  background: linear-gradient(135deg, #1C75FF 0%, #4FC3F7 100%);
-  border-radius: 16px;
-  padding: 32px;
-  margin-bottom: 32px;
-  box-shadow: 0 10px 20px rgba(28, 117, 255, 0.15);
-  color: white;
+.user-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0 20px 0;
   cursor: pointer;
 }
-.member-header {
+
+.user-left {
   display: flex;
   align-items: center;
 }
+
 .avatar {
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  margin-right: 24px;
-  border: 3px solid rgba(255,255,255,0.3);
+  margin-right: 16px;
+  border: 2px solid #e2e8f0;
 }
+
 .info {
-  flex: 1;
   display: flex;
   flex-direction: column;
 }
+
 .nickname {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 800;
-  margin-bottom: 6px;
+  color: #1e293b;
+  margin-bottom: 4px;
 }
+
 .level {
-  font-size: 16px;
-  opacity: 0.9;
-  background: rgba(255,255,255,0.2);
-  padding: 4px 12px;
-  border-radius: 20px;
+  font-size: 12px;
+  color: #fff;
+  background: #f59e0b;
+  padding: 2px 8px;
+  border-radius: 12px;
   display: inline-block;
   align-self: flex-start;
-}
-.points {
-  font-size: 18px;
   font-weight: 600;
-  opacity: 0.95;
 }
+
+.points-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.points-label {
+  font-size: 13px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+
 .pt-num {
-  font-size: 32px;
+  font-size: 24px;
   font-weight: 800;
-  margin-left: 8px;
+  color: #3b82f6;
+}
+
+.divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin-bottom: 24px;
 }
 
 .modules-grid {
@@ -212,5 +245,54 @@ const goBack = () => {
 }
 .touchable {
   cursor: pointer;
+}
+
+.module-card.full-width {
+  grid-column: span 2;
+  padding: 44px 24px; /* 增加上下内边距，让卡片显得与上方卡片一样高（长） */
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.full-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.full-content .icon {
+  margin-bottom: 0;
+  margin-right: 24px;
+  font-size: 56px; /* 稍微放大图标适配高度 */
+}
+
+.full-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.notice-images {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.section-title {
+  font-size: 30px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-top: 8px;
+  margin-bottom: -4px; /* 抵消一点 gap，让标题不要离图片太远 */
+}
+
+.notice-img {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  display: block;
 }
 </style>
