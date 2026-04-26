@@ -3,7 +3,7 @@
     <view class="nav-header">
       <view class="title-with-back">
         <button class="back-btn" @click="goBack">⬅ 返回</button>
-        <text class="page-title">营养小课堂</text>
+        <text class="page-title">家长课堂</text>
       </view>
     </view>
 

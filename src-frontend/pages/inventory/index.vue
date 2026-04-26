@@ -64,7 +64,7 @@
           </view>
         </template>
         <view v-if="inventories.length === 0" class="empty-state">
-          <text>当前仓库空空如也，请先入库。</text>
+          <text></text>
         </view>
       </view>
     </view>
@@ -76,9 +76,19 @@
         <button class="btn-scan" @click="simulateScan">调用数字扫码枪</button>
       </view>
       
-      <view class="form-group border-bottom">
-        <text class="form-label">商品SKU码</text>
-        <input class="form-input" v-model="inboundData.skuCode" placeholder="扫描条形码自动填充" />
+      <view class="form-group border-bottom" style="position: relative;">
+        <text class="form-label">选择商品</text>
+        <view class="form-input" :style="{ color: inboundData.skuCode ? '#1e293b' : '#94a3b8', width: '100%', boxSizing: 'border-box', cursor: 'pointer' }" @click="showProductSelect = !showProductSelect">
+          {{ getProductName(inboundData.skuCode) || (products.length === 0 ? '未加载到商品下拉...' : '点此选择商品...') }}
+        </view>
+        <!-- 自定义选择面板 -->
+        <scroll-view scroll-y class="custom-dropdown" v-if="showProductSelect">
+          <view class="custom-option" v-for="prod in products" :key="prod.id" @click="onOptionClick(prod)">
+            <text class="opt-name">{{ prod.name }}</text>
+            <text class="opt-sku">SKU: {{ prod.skuCode || prod.id }}</text>
+          </view>
+          <view v-if="products.length === 0" class="custom-option" style="color:#94a3b8; text-align:center;">暂无商品可选</view>
+        </scroll-view>
       </view>
       <view class="form-group border-bottom">
         <text class="form-label">批次(Batch)</text>
@@ -196,11 +206,22 @@ const inboundData = ref({
 const showStocktakeModal = ref(false);
 const curTakeItem = ref(null);
 const newStockVal = ref('');
+const showProductSelect = ref(false);
+
+const onOptionClick = (prod) => {
+  inboundData.value.skuCode = prod.skuCode || prod.id;
+  showProductSelect.value = false;
+};
 
 onMounted(() => {
   fetchInventory();
   fetchProducts();
 });
+
+const getProductName = (skuCode) => {
+  const p = products.value.find(p => p.skuCode === skuCode || p.id === skuCode);
+  return p ? p.name : '';
+};
 
 const fetchProducts = async () => {
   try {
@@ -475,6 +496,19 @@ const goBack = () => {
   outline: none; transition: all 0.2s;
 }
 .form-input:focus { border-color: #3b82f6; background: #ffffff; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+
+.custom-dropdown {
+  position: absolute; top: calc(100% - 10px); left: 0; right: 0; z-index: 100;
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
+  max-height: 250px; overflow-y: auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+.custom-option {
+  padding: 16px 20px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s;
+  display: flex; flex-direction: column;
+}
+.custom-option:hover { background: #f8fafc; }
+.opt-name { font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+.opt-sku { font-size: 14px; color: #64748b; font-family: monospace; }
 
 .btn-submit {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);

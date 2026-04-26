@@ -41,20 +41,20 @@
 
     <!-- 核心功能卡片区 -->
     <view class="function-grid">
-      <view class="func-card" @click="goToCustomers">
-        <view class="icon-wrap bg-indigo">👥</view>
-        <text class="func-title">客情中心</text>
-        <text class="func-desc">会员档案与行为分析</text>
+      <view class="func-card" @click="goToTraining">
+        <view class="icon-wrap bg-teal">🎓</view>
+        <text class="func-title">店员培训</text>
+        <text class="func-desc">学习产品知识与考核</text>
       </view>
       <view class="func-card" @click="goToInventory">
         <view class="icon-wrap bg-orange">📦</view>
         <text class="func-title">仓储与补货</text>
         <text class="func-desc">智能盘点与入库预测</text>
       </view>
-      <view class="func-card" @click="goToTraining">
-        <view class="icon-wrap bg-teal">🎓</view>
-        <text class="func-title">店员培训</text>
-        <text class="func-desc">学习产品知识与考核</text>
+      <view class="func-card" @click="goToCustomers">
+        <view class="icon-wrap bg-indigo">👥</view>
+        <text class="func-title">客情中心</text>
+        <text class="func-desc">会员档案与行为分析</text>
       </view>
       <view class="func-card" @click="goToAdmin">
         <view class="icon-wrap bg-slate">⚙️</view>
@@ -73,10 +73,9 @@
         
         <view class="form-item">
           <text class="form-label">绑定顾客</text>
-          <select class="form-input" v-model="recycleForm.customerId">
-            <option disabled value="">请选择核销顾客...</option>
-            <option v-for="c in customersList" :key="c.id" :value="c.id">{{ c.nickname || c.phone }}</option>
-          </select>
+          <picker class="form-input" :range="customersList" range-key="nickname" @change="onCustomerSelect">
+            <view>{{ getCustomerName(recycleForm.customerId) || '请选择核销顾客...' }}</view>
+          </picker>
         </view>
 
         <view class="form-item">
@@ -185,6 +184,18 @@ const recycleForm = ref({
   serialNumber: ''
 });
 
+const onCustomerSelect = (e) => {
+  const index = e.detail.value;
+  if (customersList.value[index]) {
+    recycleForm.value.customerId = customersList.value[index].id;
+  }
+};
+
+const getCustomerName = (id) => {
+  const c = customersList.value.find(item => item.id === id);
+  return c ? (c.nickname || c.phone) : '';
+};
+
 onMounted(() => {
   fetchDashboardStats();
   fetchPendingTasks();
@@ -214,7 +225,7 @@ const fetchPendingTasks = async () => {
       url: 'http://localhost:3000/tasks',
       method: 'GET'
     });
-    if (res.data && Array.isArray(res.data)) {
+    console.log("Tasks response:", res.data); if (res.data && Array.isArray(res.data)) {
       pendingTasks.value = res.data;
     }
   } catch (error) {
